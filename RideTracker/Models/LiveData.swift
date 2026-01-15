@@ -29,6 +29,21 @@ struct LiveData: Codable, Identifiable {
         }
         return Date().timeIntervalSince(date) > 3600 // 1 hour
     }
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, status, queue, showtimes, lastUpdated
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        // Handle unknown status values gracefully
+        status = try? container.decodeIfPresent(RideStatus.self, forKey: .status)
+        queue = try? container.decodeIfPresent(QueueInfo.self, forKey: .queue)
+        showtimes = try? container.decodeIfPresent([Showtime].self, forKey: .showtimes)
+        lastUpdated = try? container.decodeIfPresent(String.self, forKey: .lastUpdated)
+    }
 }
 
 struct QueueInfo: Codable {
@@ -38,6 +53,12 @@ struct QueueInfo: Codable {
     enum CodingKeys: String, CodingKey {
         case standby = "STANDBY"
         case lightningLane = "PAID_RETURN_TIME"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        standby = try? container.decodeIfPresent(StandbyQueue.self, forKey: .standby)
+        lightningLane = try? container.decodeIfPresent(LightningLane.self, forKey: .lightningLane)
     }
 }
 
