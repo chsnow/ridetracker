@@ -23,6 +23,9 @@
 		014 /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114; };
 		015 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115; };
 		016 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 200; };
+		017 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117; };
+		018 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118; };
+		019 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = F001; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +46,8 @@
 		114 /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
 		115 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
 		116 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		117 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		118 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		200 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -51,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				019 /* FirebaseMessaging in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +131,8 @@
 				113 /* ThemeParksAPI.swift */,
 				114 /* StorageService.swift */,
 				115 /* LocationService.swift */,
+				117 /* AppDelegate.swift */,
+				118 /* NotificationService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -145,6 +153,9 @@
 			dependencies = (
 			);
 			name = RideTracker;
+			packageProductDependencies = (
+				F001 /* FirebaseMessaging */,
+			);
 			productName = RideTracker;
 			productReference = 100 /* RideTracker.app */;
 			productType = "com.apple.product-type.application";
@@ -173,6 +184,9 @@
 				Base,
 			);
 			mainGroup = 600;
+			packageReferences = (
+				P001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			productRefGroup = 602 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -213,6 +227,8 @@
 				013 /* ThemeParksAPI.swift in Sources */,
 				014 /* StorageService.swift in Sources */,
 				015 /* LocationService.swift in Sources */,
+				017 /* AppDelegate.swift in Sources */,
+				018 /* NotificationService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -422,6 +438,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		P001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F001 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = P001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 900 /* Project object */;
 }
