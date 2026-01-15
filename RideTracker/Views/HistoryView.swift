@@ -240,6 +240,7 @@ struct HistoryItemView: View {
     @EnvironmentObject var appState: AppState
     let entry: RideHistoryEntry
     @State private var offset: CGFloat = 0
+    @State private var isDraggingHorizontally = false
 
     var body: some View {
         ZStack {
@@ -305,22 +306,29 @@ struct HistoryItemView: View {
             .padding()
             .background(Color(.systemBackground))
             .offset(x: offset)
-            .gesture(
-                DragGesture(minimumDistance: 20, coordinateSpace: .local)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 30, coordinateSpace: .local)
                     .onChanged { gesture in
-                        // Only respond to horizontal swipes
                         let horizontal = abs(gesture.translation.width)
                         let vertical = abs(gesture.translation.height)
-                        guard horizontal > vertical else { return }
+
+                        if !isDraggingHorizontally {
+                            guard horizontal > vertical * 2 && horizontal > 30 else { return }
+                            isDraggingHorizontally = true
+                        }
+
                         offset = min(0, gesture.translation.width)
                     }
                     .onEnded { gesture in
-                        withAnimation(.spring()) {
-                            if offset < -80 {
-                                appState.removeFromHistory(entry)
+                        if isDraggingHorizontally {
+                            withAnimation(.spring()) {
+                                if offset < -80 {
+                                    appState.removeFromHistory(entry)
+                                }
+                                offset = 0
                             }
-                            offset = 0
                         }
+                        isDraggingHorizontally = false
                     }
             )
         }

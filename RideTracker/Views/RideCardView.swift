@@ -5,6 +5,7 @@ struct RideCardView: View {
     let entity: Entity
 
     @State private var offset: CGFloat = 0
+    @State private var isDraggingHorizontally = false
     @State private var showingQueueTypeSheet = false
     @State private var showingNoteEditor = false
     @State private var noteText: String = ""
@@ -189,42 +190,44 @@ struct RideCardView: View {
             .cornerRadius(12)
             .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
             .offset(x: offset)
-            .gesture(
-                DragGesture(minimumDistance: 20, coordinateSpace: .local)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 30, coordinateSpace: .local)
                     .onChanged { gesture in
-                        // Only respond to horizontal swipes (not vertical scrolling)
                         let horizontal = abs(gesture.translation.width)
                         let vertical = abs(gesture.translation.height)
-                        guard horizontal > vertical else { return }
+
+                        // Once committed to horizontal, stay horizontal
+                        if !isDraggingHorizontally {
+                            // Only start horizontal drag if clearly horizontal (2:1 ratio)
+                            guard horizontal > vertical * 2 && horizontal > 30 else { return }
+                            isDraggingHorizontally = true
+                        }
 
                         let translation = gesture.translation.width
                         if isInQueue {
-                            // Allow both directions
                             offset = translation
                         } else {
-                            // Only allow left swipe (negative)
                             offset = min(0, translation)
                         }
                     }
                     .onEnded { gesture in
-                        withAnimation(.spring()) {
-                            if offset < -60 {
-                                // Swiped left - start queue or log ride
-                                if isInQueue {
-                                    appState.endQueue(entity: entity)
-                                } else if hasLightningLane {
-                                    // Show queue type selection only if LL is available
-                                    showingQueueTypeSheet = true
-                                } else {
-                                    // No LL available, start standby queue directly
-                                    appState.startQueue(entity: entity, queueType: .standby)
+                        if isDraggingHorizontally {
+                            withAnimation(.spring()) {
+                                if offset < -60 {
+                                    if isInQueue {
+                                        appState.endQueue(entity: entity)
+                                    } else if hasLightningLane {
+                                        showingQueueTypeSheet = true
+                                    } else {
+                                        appState.startQueue(entity: entity, queueType: .standby)
+                                    }
+                                } else if offset > 60 && isInQueue {
+                                    appState.cancelQueue(entityId: entity.id)
                                 }
-                            } else if offset > 60 && isInQueue {
-                                // Swiped right - cancel queue
-                                appState.cancelQueue(entityId: entity.id)
+                                offset = 0
                             }
-                            offset = 0
                         }
+                        isDraggingHorizontally = false
                     }
             )
         }
