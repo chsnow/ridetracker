@@ -70,7 +70,7 @@ enum EntityType: String, Codable, CaseIterable {
 
     var icon: String {
         switch self {
-        case .attraction: return "roller.coaster"
+        case .attraction: return "wand.and.stars"
         case .show: return "theatermasks"
         case .restaurant: return "fork.knife"
         }
