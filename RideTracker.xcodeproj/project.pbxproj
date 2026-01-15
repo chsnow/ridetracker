@@ -7,22 +7,22 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		001 /* RideTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 101; };
-		002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102; };
-		003 /* RidesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103; };
-		004 /* RideCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 104; };
-		005 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105; };
-		006 /* QRCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 106; };
-		007 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 107; };
-		008 /* Park.swift in Sources */ = {isa = PBXBuildFile; fileRef = 108; };
-		009 /* Entity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 109; };
-		010 /* LiveData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110; };
-		011 /* RideHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111; };
-		012 /* ActiveQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112; };
-		013 /* ThemeParksAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113; };
-		014 /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114; };
-		015 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115; };
-		016 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 200; };
+		001 /* RideTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 101 /* RideTrackerApp.swift */; };
+		002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102 /* ContentView.swift */; };
+		003 /* RidesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103 /* RidesView.swift */; };
+		004 /* RideCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 104 /* RideCardView.swift */; };
+		005 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105 /* HistoryView.swift */; };
+		006 /* QRCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 106 /* QRCodeView.swift */; };
+		007 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 107 /* AppState.swift */; };
+		008 /* Park.swift in Sources */ = {isa = PBXBuildFile; fileRef = 108 /* Park.swift */; };
+		009 /* Entity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 109 /* Entity.swift */; };
+		010 /* LiveData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110 /* LiveData.swift */; };
+		011 /* RideHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111 /* RideHistory.swift */; };
+		012 /* ActiveQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112 /* ActiveQueue.swift */; };
+		013 /* ThemeParksAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113 /* ThemeParksAPI.swift */; };
+		014 /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114 /* StorageService.swift */; };
+		015 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115 /* LocationService.swift */; };
+		016 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 200 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -134,7 +134,7 @@
 /* Begin PBXNativeTarget section */
 		700 /* RideTracker */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 800;
+			buildConfigurationList = 800 /* Build configuration list for PBXNativeTarget "RideTracker" */;
 			buildPhases = (
 				501 /* Sources */,
 				500 /* Frameworks */,
@@ -164,7 +164,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 901;
+			buildConfigurationList = 901 /* Build configuration list for PBXProject "RideTracker" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -226,23 +226,23 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = U29PR3N7Q4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RideTracker/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Ride Tracker";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is needed to scan QR codes for importing ride history and notes.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Location access is used to show your distance from attractions.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ridetracker.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chsnow.ridetracker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -257,23 +257,23 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = U29PR3N7Q4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RideTracker/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Ride Tracker";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is needed to scan QR codes for importing ride history and notes.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Location access is used to show your distance from attractions.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ridetracker.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chsnow.ridetracker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
