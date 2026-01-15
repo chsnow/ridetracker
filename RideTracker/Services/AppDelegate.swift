@@ -25,13 +25,16 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
         UNUserNotificationCenter.current().requestAuthorization(options: authOptions) { granted, error in
             if let error = error {
-                print("Notification authorization error: \(error.localizedDescription)")
+                print("❌ Notification authorization error: \(error.localizedDescription)")
                 return
             }
+
+            print("🔔 Notification permission granted: \(granted)")
 
             if granted {
                 DispatchQueue.main.async {
                     application.registerForRemoteNotifications()
+                    print("📝 Registered for remote notifications")
                 }
             }
         }
@@ -43,6 +46,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
     ) {
+        let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+        print("✅ APNs Device Token: \(tokenString)")
+
         // Pass device token to Firebase
         Messaging.messaging().apnsToken = deviceToken
     }
@@ -51,7 +57,20 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFailToRegisterForRemoteNotificationsWithError error: Error
     ) {
-        print("Failed to register for remote notifications: \(error.localizedDescription)")
+        print("❌ Failed to register for remote notifications: \(error.localizedDescription)")
+    }
+
+    // Handle background/silent notifications
+    func application(
+        _ application: UIApplication,
+        didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+        fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+    ) {
+        print("📬 Received remote notification: \(userInfo)")
+
+        NotificationService.shared.handleNotification(userInfo: userInfo)
+
+        completionHandler(.newData)
     }
 }
 
@@ -59,9 +78,12 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
 extension AppDelegate: MessagingDelegate {
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        guard let token = fcmToken else { return }
+        guard let token = fcmToken else {
+            print("❌ FCM Token is nil")
+            return
+        }
 
-        print("FCM Token: \(token)")
+        print("🔑 FCM Token: \(token)")
 
         // Store token for later use
         NotificationService.shared.fcmToken = token
@@ -85,6 +107,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
         let userInfo = notification.request.content.userInfo
+        print("📱 Foreground notification received: \(userInfo)")
 
         // Process notification data
         NotificationService.shared.handleNotification(userInfo: userInfo)
@@ -100,6 +123,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         let userInfo = response.notification.request.content.userInfo
+        print("👆 Notification tapped: \(userInfo)")
 
         // Handle the notification tap
         NotificationService.shared.handleNotificationTap(userInfo: userInfo)
