@@ -29,6 +29,10 @@ struct RideCardView: View {
         appState.getNote(for: entity.id)
     }
 
+    private var hasLightningLane: Bool {
+        liveData?.lightningLaneInfo != nil
+    }
+
     var body: some View {
         ZStack {
             // Swipe Actions Background
@@ -208,8 +212,12 @@ struct RideCardView: View {
                                 // Swiped left - start queue or log ride
                                 if isInQueue {
                                     appState.endQueue(entity: entity)
-                                } else {
+                                } else if hasLightningLane {
+                                    // Show queue type selection only if LL is available
                                     showingQueueTypeSheet = true
+                                } else {
+                                    // No LL available, start standby queue directly
+                                    appState.startQueue(entity: entity, queueType: .standby)
                                 }
                             } else if offset > 60 && isInQueue {
                                 // Swiped right - cancel queue
