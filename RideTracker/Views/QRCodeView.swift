@@ -105,63 +105,179 @@ struct QRCodeShareSheet: View {
 
 import AVFoundation
 
-struct QRScannerView: UIViewControllerRepresentable {
-    @Binding var scannedCode: String?
+struct QRScannerSheet: View {
+    @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) var dismiss
+    @State private var scannedCode: String?
+    @State private var showingImportConfirmation = false
+    @State private var importType: String = ""
+    @State private var cameraPermissionDenied = false
 
-    func makeUIViewController(context: Context) -> QRScannerViewController {
-        let controller = QRScannerViewController()
-        controller.delegate = context.coordinator
-        return controller
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            QRScannerRepresentable(
+                scannedCode: $scannedCode,
+                onError: { _ in
+                    cameraPermissionDenied = true
+                }
+            )
+            .ignoresSafeArea()
+
+            // Overlay UI
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title)
+                            .foregroundColor(.white)
+                    }
+                    .padding()
+                }
+
+                Spacer()
+
+                // Scan frame
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.white, lineWidth: 2)
+                    .frame(width: 250, height: 250)
+
+                Text("Position QR code within frame")
+                    .foregroundColor(.white)
+                    .font(.subheadline)
+                    .padding(.top, 20)
+
+                Spacer()
+            }
+        }
+        .onChange(of: scannedCode) { _, newValue in
+            if let code = newValue {
+                processScannedCode(code)
+            }
+        }
+        .alert("Import Data", isPresented: $showingImportConfirmation) {
+            Button("Replace All") {
+                performImport(strategy: .replace)
+            }
+            Button("Merge") {
+                performImport(strategy: .merge)
+            }
+            Button("Cancel", role: .cancel) {
+                dismiss()
+            }
+        } message: {
+            Text("How would you like to import the scanned \(importType)?")
+        }
+        .alert("Camera Access", isPresented: $cameraPermissionDenied) {
+            Button("Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) {
+                dismiss()
+            }
+        } message: {
+            Text("Camera access is required to scan QR codes. Please enable it in Settings.")
+        }
     }
 
-    func updateUIViewController(_ uiViewController: QRScannerViewController, context: Context) {}
+    private func processScannedCode(_ code: String) {
+        if let data = code.data(using: .utf8) {
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+
+            if (try? decoder.decode([RideHistoryEntry].self, from: data)) != nil {
+                importType = "history"
+                showingImportConfirmation = true
+                return
+            }
+
+            if (try? decoder.decode([String: String].self, from: data)) != nil {
+                importType = "notes"
+                showingImportConfirmation = true
+                return
+            }
+        }
+
+        dismiss()
+    }
+
+    private func performImport(strategy: ImportStrategy) {
+        guard let code = scannedCode else { return }
+
+        switch importType {
+        case "history":
+            appState.importHistory(from: code, strategy: strategy)
+        case "notes":
+            appState.importNotes(from: code, strategy: strategy)
+        default:
+            break
+        }
+
+        dismiss()
+    }
+}
+
+// MARK: - QR Scanner UIViewRepresentable
+
+struct QRScannerRepresentable: UIViewRepresentable {
+    @Binding var scannedCode: String?
+    var onError: (Error) -> Void
+
+    func makeUIView(context: Context) -> QRScannerUIView {
+        let view = QRScannerUIView()
+        view.delegate = context.coordinator
+        return view
+    }
+
+    func updateUIView(_ uiView: QRScannerUIView, context: Context) {}
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
 
-    class Coordinator: NSObject, QRScannerDelegate {
-        let parent: QRScannerView
+    class Coordinator: NSObject, QRScannerUIViewDelegate {
+        let parent: QRScannerRepresentable
 
-        init(_ parent: QRScannerView) {
+        init(_ parent: QRScannerRepresentable) {
             self.parent = parent
         }
 
         func didFindCode(_ code: String) {
             parent.scannedCode = code
-            parent.dismiss()
         }
 
         func didFailWithError(_ error: Error) {
-            parent.dismiss()
+            parent.onError(error)
         }
     }
 }
 
-protocol QRScannerDelegate: AnyObject {
+protocol QRScannerUIViewDelegate: AnyObject {
     func didFindCode(_ code: String)
     func didFailWithError(_ error: Error)
 }
 
-class QRScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate {
-    weak var delegate: QRScannerDelegate?
+class QRScannerUIView: UIView, AVCaptureMetadataOutputObjectsDelegate {
+    weak var delegate: QRScannerUIViewDelegate?
     private var captureSession: AVCaptureSession?
     private var previewLayer: AVCaptureVideoPreviewLayer?
+    private var hasScanned = false
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         setupCamera()
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        startScanning()
-    }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        stopScanning()
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupCamera()
     }
 
     private func setupCamera() {
@@ -200,68 +316,37 @@ class QRScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsD
         }
 
         let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-        previewLayer.frame = view.layer.bounds
         previewLayer.videoGravity = .resizeAspectFill
-        view.layer.addSublayer(previewLayer)
+        layer.addSublayer(previewLayer)
 
         self.captureSession = session
         self.previewLayer = previewLayer
 
-        // Add frame overlay
-        addScanFrame()
-    }
-
-    private func addScanFrame() {
-        let frameSize: CGFloat = 250
-        let frameView = UIView(frame: CGRect(
-            x: (view.bounds.width - frameSize) / 2,
-            y: (view.bounds.height - frameSize) / 2,
-            width: frameSize,
-            height: frameSize
-        ))
-        frameView.layer.borderColor = UIColor.white.cgColor
-        frameView.layer.borderWidth = 2
-        frameView.layer.cornerRadius = 12
-        view.addSubview(frameView)
-
-        // Add instruction label
-        let label = UILabel()
-        label.text = "Position QR code within frame"
-        label.textColor = .white
-        label.textAlignment = .center
-        label.font = .systemFont(ofSize: 16, weight: .medium)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(label)
-
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            label.topAnchor.constraint(equalTo: frameView.bottomAnchor, constant: 20)
-        ])
-    }
-
-    private func startScanning() {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             self?.captureSession?.startRunning()
         }
     }
 
-    private func stopScanning() {
-        captureSession?.stopRunning()
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        previewLayer?.frame = bounds
     }
 
     func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+        guard !hasScanned else { return }
+
         if let metadataObject = metadataObjects.first,
            let readableObject = metadataObject as? AVMetadataMachineReadableCodeObject,
            let stringValue = readableObject.stringValue {
+            hasScanned = true
             AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
-            stopScanning()
+            captureSession?.stopRunning()
             delegate?.didFindCode(stringValue)
         }
     }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        previewLayer?.frame = view.layer.bounds
+    func stopScanning() {
+        captureSession?.stopRunning()
     }
 }
 
@@ -279,86 +364,5 @@ enum ScannerError: LocalizedError {
         case .outputFailed:
             return "Failed to setup metadata output"
         }
-    }
-}
-
-// MARK: - QR Scanner Sheet
-
-struct QRScannerSheet: View {
-    @EnvironmentObject var appState: AppState
-    @Environment(\.dismiss) var dismiss
-    @State private var scannedCode: String?
-    @State private var showingImportConfirmation = false
-    @State private var importType: String = ""
-
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                QRScannerView(scannedCode: $scannedCode)
-                    .ignoresSafeArea()
-            }
-            .navigationTitle("Scan QR Code")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-            }
-            .onChange(of: scannedCode) { _, newValue in
-                if let code = newValue {
-                    processScannedCode(code)
-                }
-            }
-            .alert("Import Data", isPresented: $showingImportConfirmation) {
-                Button("Replace All") {
-                    performImport(strategy: .replace)
-                }
-                Button("Merge") {
-                    performImport(strategy: .merge)
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("How would you like to import the scanned \(importType)?")
-            }
-        }
-    }
-
-    private func processScannedCode(_ code: String) {
-        // Try to parse as history
-        if let data = code.data(using: .utf8) {
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-
-            if (try? decoder.decode([RideHistoryEntry].self, from: data)) != nil {
-                importType = "history"
-                showingImportConfirmation = true
-                return
-            }
-
-            if (try? decoder.decode([String: String].self, from: data)) != nil {
-                importType = "notes"
-                showingImportConfirmation = true
-                return
-            }
-        }
-
-        dismiss()
-    }
-
-    private func performImport(strategy: ImportStrategy) {
-        guard let code = scannedCode else { return }
-
-        switch importType {
-        case "history":
-            appState.importHistory(from: code, strategy: strategy)
-        case "notes":
-            appState.importNotes(from: code, strategy: strategy)
-        default:
-            break
-        }
-
-        dismiss()
     }
 }

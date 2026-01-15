@@ -370,11 +370,29 @@ struct EmptyHistoryView: View {
 struct ShareSheet: UIViewControllerRepresentable {
     let items: [Any]
 
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    func makeUIViewController(context: Context) -> UIViewController {
+        let controller = UIViewController()
+        controller.view.backgroundColor = .clear
+        return controller
     }
 
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+        // Present the activity view controller when the view appears
+        if uiViewController.presentedViewController == nil {
+            let activityVC = UIActivityViewController(activityItems: items, applicationActivities: nil)
+
+            // For iPad
+            if let popover = activityVC.popoverPresentationController {
+                popover.sourceView = uiViewController.view
+                popover.sourceRect = CGRect(x: uiViewController.view.bounds.midX, y: uiViewController.view.bounds.midY, width: 0, height: 0)
+                popover.permittedArrowDirections = []
+            }
+
+            DispatchQueue.main.async {
+                uiViewController.present(activityVC, animated: true)
+            }
+        }
+    }
 }
 
 // MARK: - Import Sheet
