@@ -136,9 +136,11 @@ struct RideCardView: View {
                                     .font(.caption)
                                 Text(time)
                                     .font(.caption)
-                                if let price = ll.price?.formatted {
-                                    Text(price)
-                                        .font(.caption)
+                                if liveData?.hasPaidLightningLane == true {
+                                    if let price = ll.price?.formatted {
+                                        Text(price)
+                                            .font(.caption)
+                                    }
                                 }
                             }
                             .foregroundColor(.orange)

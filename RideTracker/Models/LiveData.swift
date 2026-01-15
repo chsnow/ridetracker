@@ -19,7 +19,12 @@ struct LiveData: Codable, Identifiable {
     }
 
     var lightningLaneInfo: LightningLane? {
-        queue?.lightningLane
+        // Prefer paid LL info if available, otherwise use regular return time
+        queue?.paidLightningLane ?? queue?.returnTime
+    }
+
+    var hasPaidLightningLane: Bool {
+        queue?.paidLightningLane != nil
     }
 
     var isDataStale: Bool {
@@ -48,17 +53,20 @@ struct LiveData: Codable, Identifiable {
 
 struct QueueInfo: Codable {
     let standby: StandbyQueue?
-    let lightningLane: LightningLane?
+    let returnTime: LightningLane?
+    let paidLightningLane: LightningLane?
 
     enum CodingKeys: String, CodingKey {
         case standby = "STANDBY"
-        case lightningLane = "PAID_RETURN_TIME"
+        case returnTime = "RETURN_TIME"
+        case paidLightningLane = "PAID_RETURN_TIME"
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         standby = try? container.decodeIfPresent(StandbyQueue.self, forKey: .standby)
-        lightningLane = try? container.decodeIfPresent(LightningLane.self, forKey: .lightningLane)
+        returnTime = try? container.decodeIfPresent(LightningLane.self, forKey: .returnTime)
+        paidLightningLane = try? container.decodeIfPresent(LightningLane.self, forKey: .paidLightningLane)
     }
 }
 
