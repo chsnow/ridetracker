@@ -170,11 +170,14 @@ actor StorageService {
     // MARK: - Sort Order
 
     func getSortOrder() -> SortOrder {
-        guard let rawValue = defaults.string(forKey: Keys.sortOrder),
-              let order = SortOrder(rawValue: rawValue) else {
-            return .waitTime
+        guard let rawValue = defaults.string(forKey: Keys.sortOrder) else {
+            return .waitTimeLowToHigh
         }
-        return order
+        // Handle migration from old sort order values
+        if rawValue == "waitTime" {
+            return .waitTimeLowToHigh
+        }
+        return SortOrder(rawValue: rawValue) ?? .waitTimeLowToHigh
     }
 
     func saveSortOrder(_ order: SortOrder) {
@@ -193,23 +196,32 @@ actor StorageService {
 }
 
 enum SortOrder: String, CaseIterable {
-    case waitTime = "waitTime"
     case name = "name"
     case distance = "distance"
+    case waitTimeLowToHigh = "waitTimeLow"
+    case waitTimeHighToLow = "waitTimeHigh"
+    case llReturnEarliest = "llEarliest"
+    case llReturnLatest = "llLatest"
 
     var displayName: String {
         switch self {
-        case .waitTime: return "Wait Time"
-        case .name: return "Name"
-        case .distance: return "Distance"
+        case .name: return "A-Z"
+        case .distance: return "Closest"
+        case .waitTimeLowToHigh: return "Standby Wait (Low → High)"
+        case .waitTimeHighToLow: return "Standby Wait (High → Low)"
+        case .llReturnEarliest: return "LL Return (Earliest)"
+        case .llReturnLatest: return "LL Return (Latest)"
         }
     }
 
     var icon: String {
         switch self {
-        case .waitTime: return "clock"
         case .name: return "textformat.abc"
         case .distance: return "location"
+        case .waitTimeLowToHigh: return "arrow.up.circle"
+        case .waitTimeHighToLow: return "arrow.down.circle"
+        case .llReturnEarliest: return "bolt.circle"
+        case .llReturnLatest: return "bolt.circle.fill"
         }
     }
 }

@@ -19,7 +19,7 @@ class AppState: ObservableObject {
     @Published var notes: [String: String] = [:]
     @Published var collapsedDays: Set<String> = []
 
-    @Published var sortOrder: SortOrder = .waitTime
+    @Published var sortOrder: SortOrder = .waitTimeLowToHigh
     @Published var searchText: String = ""
     @Published var showFavoritesOnly: Bool = false
 
@@ -136,17 +136,9 @@ class AppState: ObservableObject {
 
     private func sortEntities(_ entities: [Entity]) -> [Entity] {
         switch sortOrder {
-        case .waitTime:
-            return entities.sorted { e1, e2 in
-                let wait1 = liveData[e1.id]?.waitMinutes ?? Int.max
-                let wait2 = liveData[e2.id]?.waitMinutes ?? Int.max
-                if wait1 == wait2 {
-                    return e1.name < e2.name
-                }
-                return wait1 < wait2
-            }
         case .name:
             return entities.sorted { $0.name < $1.name }
+
         case .distance:
             return entities.sorted { e1, e2 in
                 guard let coord1 = e1.coordinate,
@@ -157,7 +149,72 @@ class AppState: ObservableObject {
                 let dist2 = locationService.distance(to: coord2) ?? Double.infinity
                 return dist1 < dist2
             }
+
+        case .waitTimeLowToHigh:
+            return entities.sorted { e1, e2 in
+                let wait1 = liveData[e1.id]?.waitMinutes ?? Int.max
+                let wait2 = liveData[e2.id]?.waitMinutes ?? Int.max
+                if wait1 == wait2 {
+                    return e1.name < e2.name
+                }
+                return wait1 < wait2
+            }
+
+        case .waitTimeHighToLow:
+            return entities.sorted { e1, e2 in
+                let wait1 = liveData[e1.id]?.waitMinutes ?? -1
+                let wait2 = liveData[e2.id]?.waitMinutes ?? -1
+                if wait1 == wait2 {
+                    return e1.name < e2.name
+                }
+                return wait1 > wait2
+            }
+
+        case .llReturnEarliest:
+            return entities.sorted { e1, e2 in
+                let ll1 = liveData[e1.id]?.lightningLaneInfo
+                let ll2 = liveData[e2.id]?.lightningLaneInfo
+                let time1 = llReturnDate(ll1)
+                let time2 = llReturnDate(ll2)
+
+                // Entities with LL come first, sorted by return time
+                switch (time1, time2) {
+                case (.some(let t1), .some(let t2)):
+                    return t1 < t2
+                case (.some, .none):
+                    return true
+                case (.none, .some):
+                    return false
+                case (.none, .none):
+                    return e1.name < e2.name
+                }
+            }
+
+        case .llReturnLatest:
+            return entities.sorted { e1, e2 in
+                let ll1 = liveData[e1.id]?.lightningLaneInfo
+                let ll2 = liveData[e2.id]?.lightningLaneInfo
+                let time1 = llReturnDate(ll1)
+                let time2 = llReturnDate(ll2)
+
+                // Entities with LL come first, sorted by return time (latest first)
+                switch (time1, time2) {
+                case (.some(let t1), .some(let t2)):
+                    return t1 > t2
+                case (.some, .none):
+                    return true
+                case (.none, .some):
+                    return false
+                case (.none, .none):
+                    return e1.name < e2.name
+                }
+            }
         }
+    }
+
+    private func llReturnDate(_ ll: LightningLane?) -> Date? {
+        guard let returnStart = ll?.returnStart else { return nil }
+        return ISO8601DateFormatter().date(from: returnStart)
     }
 
     // MARK: - Park Selection
