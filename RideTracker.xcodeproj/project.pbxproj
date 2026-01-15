@@ -26,6 +26,7 @@
 		017 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117 /* AppDelegate.swift */; };
 		018 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118 /* NotificationService.swift */; };
 		019 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = F001 /* FirebaseMessaging */; };
+		E03CDDD32F1977000018A7F0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E03CDDD22F1976FF0018A7F0 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +50,7 @@
 		117 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		118 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		200 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E03CDDD22F1976FF0018A7F0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +76,7 @@
 		601 /* RideTracker */ = {
 			isa = PBXGroup;
 			children = (
+				E03CDDD22F1976FF0018A7F0 /* GoogleService-Info.plist */,
 				101 /* RideTrackerApp.swift */,
 				603 /* Views */,
 				604 /* ViewModels */,
@@ -202,6 +205,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				016 /* Assets.xcassets in Resources */,
+				E03CDDD32F1977000018A7F0 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
