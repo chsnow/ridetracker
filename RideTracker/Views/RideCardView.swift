@@ -184,8 +184,13 @@ struct RideCardView: View {
             .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
             .offset(x: offset)
             .gesture(
-                DragGesture()
+                DragGesture(minimumDistance: 20, coordinateSpace: .local)
                     .onChanged { gesture in
+                        // Only respond to horizontal swipes (not vertical scrolling)
+                        let horizontal = abs(gesture.translation.width)
+                        let vertical = abs(gesture.translation.height)
+                        guard horizontal > vertical else { return }
+
                         let translation = gesture.translation.width
                         if isInQueue {
                             // Allow both directions

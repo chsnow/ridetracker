@@ -306,8 +306,12 @@ struct HistoryItemView: View {
             .background(Color(.systemBackground))
             .offset(x: offset)
             .gesture(
-                DragGesture()
+                DragGesture(minimumDistance: 20, coordinateSpace: .local)
                     .onChanged { gesture in
+                        // Only respond to horizontal swipes
+                        let horizontal = abs(gesture.translation.width)
+                        let vertical = abs(gesture.translation.height)
+                        guard horizontal > vertical else { return }
                         offset = min(0, gesture.translation.width)
                     }
                     .onEnded { gesture in
