@@ -37,23 +37,8 @@ struct RideCardView: View {
     var body: some View {
         ZStack {
             // Swipe Actions Background
-            HStack {
-                // Left action (Start queue / Log ride)
-                ZStack {
-                    Color.green
-                    VStack {
-                        Image(systemName: isInQueue ? "checkmark.circle" : "play.circle")
-                            .font(.title)
-                        Text(isInQueue ? "Log" : "Start")
-                            .font(.caption.weight(.semibold))
-                    }
-                    .foregroundColor(.white)
-                }
-                .frame(width: 80)
-
-                Spacer()
-
-                // Right action (Cancel queue)
+            HStack(spacing: 0) {
+                // Left side - revealed when swiping RIGHT (cancel queue)
                 if isInQueue {
                     ZStack {
                         Color.red
@@ -67,6 +52,21 @@ struct RideCardView: View {
                     }
                     .frame(width: 80)
                 }
+
+                Spacer()
+
+                // Right side - revealed when swiping LEFT (start/log)
+                ZStack {
+                    Color.green
+                    VStack {
+                        Image(systemName: isInQueue ? "checkmark.circle" : "play.circle")
+                            .font(.title)
+                        Text(isInQueue ? "Log" : "Start")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .foregroundColor(.white)
+                }
+                .frame(width: 80)
             }
             .cornerRadius(12)
 
