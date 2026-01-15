@@ -317,35 +317,31 @@ struct ShowtimesView: View {
 
 struct QueueTimerView: View {
     let queue: ActiveQueue
-    @State private var currentTime = Date()
-
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
-        HStack {
-            Image(systemName: queue.queueType.icon)
-            Text("In queue:")
-            Text(formattedTime)
-                .font(.headline.monospacedDigit())
+        TimelineView(.periodic(from: queue.startTime, by: 1)) { context in
+            HStack {
+                Image(systemName: queue.queueType.icon)
+                Text("In queue:")
+                Text(formattedTime(at: context.date))
+                    .font(.headline.monospacedDigit())
 
-            Spacer()
+                Spacer()
 
-            if let expected = queue.expectedWaitMinutes {
-                Text("Est: \(expected) min")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                if let expected = queue.expectedWaitMinutes {
+                    Text("Est: \(expected) min")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
-        }
-        .padding(8)
-        .background(queue.queueType == .lightningLane ? Color.orange.opacity(0.2) : Color.green.opacity(0.2))
-        .cornerRadius(8)
-        .onReceive(timer) { _ in
-            currentTime = Date()
+            .padding(8)
+            .background(queue.queueType == .lightningLane ? Color.orange.opacity(0.2) : Color.green.opacity(0.2))
+            .cornerRadius(8)
         }
     }
 
-    private var formattedTime: String {
-        let elapsed = currentTime.timeIntervalSince(queue.startTime)
+    private func formattedTime(at date: Date) -> String {
+        let elapsed = date.timeIntervalSince(queue.startTime)
         let minutes = Int(elapsed / 60)
         let seconds = Int(elapsed.truncatingRemainder(dividingBy: 60))
         return String(format: "%d:%02d", minutes, seconds)
