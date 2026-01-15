@@ -76,6 +76,10 @@ class AppState: ObservableObject {
                     await loadParkData(park)
                 }
             }
+        } catch is CancellationError {
+            // Ignore cancellation errors
+        } catch let error as URLError where error.code == .cancelled {
+            // Ignore URL cancellation errors
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -96,6 +100,10 @@ class AppState: ObservableObject {
             let (fetchedEntities, fetchedLiveData) = try await (entitiesTask, liveDataTask)
             entities = fetchedEntities
             liveData = Dictionary(uniqueKeysWithValues: fetchedLiveData.map { ($0.id, $0) })
+        } catch is CancellationError {
+            // Ignore cancellation errors (happens during pull-to-refresh)
+        } catch let error as URLError where error.code == .cancelled {
+            // Ignore URL cancellation errors
         } catch {
             errorMessage = error.localizedDescription
         }
