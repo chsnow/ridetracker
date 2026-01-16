@@ -73,9 +73,13 @@ actor ThemeParksAPI {
     func fetchLiveData(for parkId: String) async throws -> [LiveData] {
         let url = URL(string: "\(baseURL)/entity/\(parkId)/live")!
 
+        // Bypass cache to always get fresh wait times
+        var request = URLRequest(url: url)
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+
         print("[ThemeParksAPI] → GET \(url.absoluteString)")
 
-        let (data, response) = try await session.data(from: url)
+        let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             print("[ThemeParksAPI] ❌ Fetch live data failed: Invalid response")
