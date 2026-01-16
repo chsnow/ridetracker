@@ -2,7 +2,7 @@ import SwiftUI
 
 struct HistoryView: View {
     @EnvironmentObject var appState: AppState
-    @State private var showingShareSheet = false
+    @State private var showingExportSheet = false
     @State private var showingImportSheet = false
     @State private var showingTripReportSheet = false
     @State private var showingQRShareSheet = false
@@ -30,7 +30,7 @@ struct HistoryView: View {
                         Button {
                             showingImportSheet = true
                         } label: {
-                            Label("Import Text/JSON", systemImage: "square.and.arrow.down")
+                            Label("Import Data", systemImage: "square.and.arrow.down")
                         }
 
                         Button {
@@ -46,9 +46,9 @@ struct HistoryView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Button {
-                            showingShareSheet = true
+                            showingExportSheet = true
                         } label: {
-                            Label("Share as Text", systemImage: "doc.text")
+                            Label("Export Data", systemImage: "doc.text")
                         }
 
                         Button {
@@ -70,8 +70,8 @@ struct HistoryView: View {
                     .disabled(appState.rideHistory.isEmpty)
                 }
             }
-            .sheet(isPresented: $showingShareSheet) {
-                ShareSheet(items: [appState.exportHistory()])
+            .sheet(isPresented: $showingExportSheet) {
+                ExportSheet()
             }
             .sheet(isPresented: $showingImportSheet) {
                 ImportSheet()
@@ -409,60 +409,264 @@ struct ImportSheet: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) var dismiss
     @State private var importText = ""
-    @State private var importType: ImportType = .history
+    @State private var showingResult = false
+    @State private var resultMessage = ""
+    @State private var resultIsError = false
 
-    enum ImportType: String, CaseIterable {
-        case history = "History"
-        case notes = "Notes"
+    private var detectedFormat: String {
+        let dataType = DataEncoder.detectDataType(importText)
+        switch dataType {
+        case .compressedHistory: return "Compressed History"
+        case .compressedNotes: return "Compressed Notes"
+        case .jsonHistory: return "JSON History"
+        case .jsonNotes: return "JSON Notes"
+        case .unknown: return importText.isEmpty ? "Paste data below" : "Unknown format"
+        }
+    }
+
+    private var canImport: Bool {
+        let dataType = DataEncoder.detectDataType(importText)
+        return dataType != .unknown
     }
 
     var body: some View {
         NavigationStack {
             Form {
-                Picker("Import Type", selection: $importType) {
-                    ForEach(ImportType.allCases, id: \.self) { type in
-                        Text(type.rawValue).tag(type)
+                Section {
+                    HStack {
+                        Image(systemName: canImport ? "checkmark.circle.fill" : "questionmark.circle")
+                            .foregroundColor(canImport ? .green : .secondary)
+                        Text(detectedFormat)
+                            .foregroundColor(canImport ? .primary : .secondary)
                     }
+                } header: {
+                    Text("Detected Format")
+                } footer: {
+                    Text("Supports both compressed format (DISNEY_H:/DISNEY_N:) and JSON")
                 }
-                .pickerStyle(.segmented)
 
-                Section("Paste JSON Data") {
+                Section("Paste Data") {
                     TextEditor(text: $importText)
                         .frame(minHeight: 200)
+                        .font(.system(.body, design: .monospaced))
                 }
 
                 Section {
-                    Button("Replace All") {
+                    Button {
                         performImport(strategy: .replace)
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                            Text("Replace All")
+                        }
                     }
-                    .disabled(importText.isEmpty)
+                    .disabled(!canImport)
 
-                    Button("Merge") {
+                    Button {
                         performImport(strategy: .merge)
+                    } label: {
+                        HStack {
+                            Image(systemName: "plus.circle")
+                            Text("Merge with Existing")
+                        }
                     }
-                    .disabled(importText.isEmpty)
+                    .disabled(!canImport)
+                } footer: {
+                    Text("Replace removes existing data. Merge adds new entries only.")
                 }
             }
             .navigationTitle("Import Data")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Paste") {
+                        if let clipboard = UIPasteboard.general.string {
+                            importText = clipboard
+                        }
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Cancel") {
                         dismiss()
                     }
                 }
             }
+            .alert(resultIsError ? "Import Failed" : "Import Successful", isPresented: $showingResult) {
+                Button("OK") {
+                    if !resultIsError {
+                        dismiss()
+                    }
+                }
+            } message: {
+                Text(resultMessage)
+            }
         }
     }
 
     private func performImport(strategy: ImportStrategy) {
-        switch importType {
-        case .history:
-            appState.importHistory(from: importText, strategy: strategy)
-        case .notes:
-            appState.importNotes(from: importText, strategy: strategy)
+        let result = appState.importData(from: importText, strategy: strategy)
+
+        switch result {
+        case .success(let type, let count):
+            resultMessage = "Imported \(count) \(type.rawValue)"
+            resultIsError = false
+            showingResult = true
+        case .failure(let message):
+            resultMessage = message
+            resultIsError = true
+            showingResult = true
         }
-        dismiss()
+    }
+}
+
+// MARK: - Export Sheet
+
+struct ExportSheet: View {
+    @EnvironmentObject var appState: AppState
+    @Environment(\.dismiss) var dismiss
+    @State private var exportType: ExportDataType = .history
+    @State private var exportFormat: ExportFormat = .compressed
+    @State private var showingShareSheet = false
+    @State private var copied = false
+
+    enum ExportDataType: String, CaseIterable {
+        case history = "History"
+        case notes = "Notes"
+    }
+
+    enum ExportFormat: String, CaseIterable {
+        case compressed = "Compact"
+        case json = "JSON"
+
+        var description: String {
+            switch self {
+            case .compressed: return "Smaller, works with web version"
+            case .json: return "Human-readable, larger size"
+            }
+        }
+    }
+
+    private var exportedData: String {
+        switch (exportType, exportFormat) {
+        case (.history, .compressed):
+            return appState.exportHistoryEncoded()
+        case (.history, .json):
+            return appState.exportHistory()
+        case (.notes, .compressed):
+            return appState.exportNotesEncoded()
+        case (.notes, .json):
+            return appState.exportNotes()
+        }
+    }
+
+    private var dataSize: String {
+        let bytes = exportedData.utf8.count
+        if bytes < 1024 {
+            return "\(bytes) bytes"
+        } else {
+            return String(format: "%.1f KB", Double(bytes) / 1024.0)
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Data Type") {
+                    Picker("Type", selection: $exportType) {
+                        ForEach(ExportDataType.allCases, id: \.self) { type in
+                            Text(type.rawValue).tag(type)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+
+                Section {
+                    Picker("Format", selection: $exportFormat) {
+                        ForEach(ExportFormat.allCases, id: \.self) { format in
+                            Text(format.rawValue).tag(format)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                } header: {
+                    Text("Export Format")
+                } footer: {
+                    Text(exportFormat.description)
+                }
+
+                Section {
+                    HStack {
+                        Text("Size")
+                        Spacer()
+                        Text(dataSize)
+                            .foregroundColor(.secondary)
+                    }
+
+                    if exportType == .history {
+                        HStack {
+                            Text("Entries")
+                            Spacer()
+                            Text("\(appState.rideHistory.count)")
+                                .foregroundColor(.secondary)
+                        }
+                    } else {
+                        HStack {
+                            Text("Notes")
+                            Spacer()
+                            Text("\(appState.notes.count)")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                } header: {
+                    Text("Preview")
+                }
+
+                Section {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        Text(exportedData)
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundColor(.secondary)
+                            .lineLimit(3)
+                    }
+                    .frame(height: 50)
+                }
+
+                Section {
+                    Button {
+                        UIPasteboard.general.string = exportedData
+                        copied = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            copied = false
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: copied ? "checkmark" : "doc.on.doc")
+                            Text(copied ? "Copied!" : "Copy to Clipboard")
+                        }
+                    }
+
+                    Button {
+                        showingShareSheet = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up")
+                            Text("Share")
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Export Data")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+            .sheet(isPresented: $showingShareSheet) {
+                ShareSheet(items: [exportedData])
+            }
+        }
     }
 }
 

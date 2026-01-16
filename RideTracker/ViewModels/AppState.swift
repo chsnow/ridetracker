@@ -385,7 +385,95 @@ class AppState: ObservableObject {
         Set(rideHistory.map { $0.rideId }).count
     }
 
-    // MARK: - Import/Export
+    // MARK: - Import/Export (Compressed Format)
+
+    /// Export history in compressed format compatible with web version
+    func exportHistoryEncoded() -> String {
+        return DataEncoder.encodeHistory(rideHistory) ?? ""
+    }
+
+    /// Export notes in compressed format compatible with web version
+    func exportNotesEncoded() -> String {
+        return DataEncoder.encodeNotes(notes) ?? ""
+    }
+
+    /// Import data from any supported format (compressed or JSON)
+    /// Automatically detects the format and type of data
+    func importData(from text: String, strategy: ImportStrategy) -> ImportResult {
+        let dataType = DataEncoder.detectDataType(text)
+
+        switch dataType {
+        case .compressedHistory:
+            if let entries = DataEncoder.decodeHistory(text) {
+                applyHistoryImport(entries, strategy: strategy)
+                return .success(type: .history, count: entries.count)
+            }
+            return .failure(message: "Failed to decode history data")
+
+        case .compressedNotes:
+            if let notesData = DataEncoder.decodeNotes(text) {
+                applyNotesImport(notesData, strategy: strategy)
+                return .success(type: .notes, count: notesData.count)
+            }
+            return .failure(message: "Failed to decode notes data")
+
+        case .jsonHistory:
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            if let data = text.data(using: .utf8),
+               let entries = try? decoder.decode([RideHistoryEntry].self, from: data) {
+                applyHistoryImport(entries, strategy: strategy)
+                return .success(type: .history, count: entries.count)
+            }
+            return .failure(message: "Failed to parse JSON history")
+
+        case .jsonNotes:
+            if let data = text.data(using: .utf8),
+               let notesData = try? JSONDecoder().decode([String: String].self, from: data) {
+                applyNotesImport(notesData, strategy: strategy)
+                return .success(type: .notes, count: notesData.count)
+            }
+            return .failure(message: "Failed to parse JSON notes")
+
+        case .unknown:
+            return .failure(message: "Unrecognized data format")
+        }
+    }
+
+    private func applyHistoryImport(_ entries: [RideHistoryEntry], strategy: ImportStrategy) {
+        switch strategy {
+        case .replace:
+            rideHistory = entries
+        case .merge:
+            let existingIds = Set(rideHistory.map { $0.id })
+            let newEntries = entries.filter { !existingIds.contains($0.id) }
+            rideHistory.append(contentsOf: newEntries)
+            rideHistory.sort { $0.timestamp > $1.timestamp }
+        }
+
+        Task {
+            await storage.saveRideHistory(rideHistory)
+        }
+    }
+
+    private func applyNotesImport(_ notesData: [String: String], strategy: ImportStrategy) {
+        switch strategy {
+        case .replace:
+            notes = notesData
+        case .merge:
+            for (key, value) in notesData {
+                if notes[key] == nil {
+                    notes[key] = value
+                }
+            }
+        }
+
+        Task {
+            await storage.saveNotes(notes)
+        }
+    }
+
+    // MARK: - Import/Export (JSON Format - Legacy)
 
     func exportHistory() -> String {
         let encoder = JSONEncoder()
@@ -406,19 +494,7 @@ class AppState: ObservableObject {
             return
         }
 
-        switch strategy {
-        case .replace:
-            rideHistory = imported
-        case .merge:
-            let existingIds = Set(rideHistory.map { $0.id })
-            let newEntries = imported.filter { !existingIds.contains($0.id) }
-            rideHistory.append(contentsOf: newEntries)
-            rideHistory.sort { $0.timestamp > $1.timestamp }
-        }
-
-        Task {
-            await storage.saveRideHistory(rideHistory)
-        }
+        applyHistoryImport(imported, strategy: strategy)
     }
 
     func exportNotes() -> String {
@@ -437,21 +513,25 @@ class AppState: ObservableObject {
             return
         }
 
-        switch strategy {
-        case .replace:
-            notes = imported
-        case .merge:
-            for (key, value) in imported {
-                if notes[key] == nil {
-                    notes[key] = value
-                }
-            }
-        }
-
-        Task {
-            await storage.saveNotes(notes)
-        }
+        applyNotesImport(imported, strategy: strategy)
     }
+}
+
+// MARK: - Import Result
+
+enum ImportResult {
+    case success(type: ImportDataType, count: Int)
+    case failure(message: String)
+
+    var isSuccess: Bool {
+        if case .success = self { return true }
+        return false
+    }
+}
+
+enum ImportDataType: String {
+    case history = "history entries"
+    case notes = "notes"
 }
 
 enum AppTab: String, CaseIterable {
