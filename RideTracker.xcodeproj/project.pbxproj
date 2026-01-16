@@ -26,6 +26,7 @@
 		017 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117 /* AppDelegate.swift */; };
 		018 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118 /* NotificationService.swift */; };
 		019 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = F001 /* FirebaseMessaging */; };
+		020 /* DataEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119 /* DataEncoder.swift */; };
 		E03CDDD32F1977000018A7F0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E03CDDD22F1976FF0018A7F0 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
@@ -49,6 +50,7 @@
 		116 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		117 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		118 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		119 /* DataEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataEncoder.swift; sourceTree = "<group>"; };
 		200 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		201 /* RideTracker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RideTracker.entitlements; sourceTree = "<group>"; };
 		E03CDDD22F1976FF0018A7F0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -138,6 +140,7 @@
 				115 /* LocationService.swift */,
 				117 /* AppDelegate.swift */,
 				118 /* NotificationService.swift */,
+				119 /* DataEncoder.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -235,6 +238,7 @@
 				015 /* LocationService.swift in Sources */,
 				017 /* AppDelegate.swift in Sources */,
 				018 /* NotificationService.swift in Sources */,
+				020 /* DataEncoder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
