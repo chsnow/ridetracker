@@ -87,8 +87,12 @@ class AppState: ObservableObject {
         isLoading = false
     }
 
-    func loadParkData(_ park: Park) async {
-        isLoading = true
+    func loadParkData(_ park: Park, showLoading: Bool = true) async {
+        // Only set isLoading for initial loads, not refreshes
+        // Setting state during .refreshable can cause task cancellation
+        if showLoading {
+            isLoading = true
+        }
         errorMessage = nil
 
         await storage.saveLastParkId(park.id)
@@ -101,19 +105,37 @@ class AppState: ObservableObject {
             entities = fetchedEntities
             liveData = Dictionary(uniqueKeysWithValues: fetchedLiveData.map { ($0.id, $0) })
         } catch is CancellationError {
-            // Ignore cancellation errors (happens during pull-to-refresh)
+            // Ignore cancellation errors
         } catch let error as URLError where error.code == .cancelled {
             // Ignore URL cancellation errors
         } catch {
             errorMessage = error.localizedDescription
         }
 
-        isLoading = false
+        if showLoading {
+            isLoading = false
+        }
     }
 
     func refreshData() async {
         guard let park = selectedPark else { return }
-        await loadParkData(park)
+
+        // Use a detached task to avoid SwiftUI's .refreshable cancellation
+        await Task.detached { [api] in
+            do {
+                async let entitiesTask = api.fetchEntities(for: park.id)
+                async let liveDataTask = api.fetchLiveData(for: park.id)
+
+                let (fetchedEntities, fetchedLiveData) = try await (entitiesTask, liveDataTask)
+
+                await MainActor.run {
+                    self.entities = fetchedEntities
+                    self.liveData = Dictionary(uniqueKeysWithValues: fetchedLiveData.map { ($0.id, $0) })
+                }
+            } catch {
+                // Errors are logged by the API layer
+            }
+        }.value
     }
 
     // MARK: - Filtered & Sorted Entities
