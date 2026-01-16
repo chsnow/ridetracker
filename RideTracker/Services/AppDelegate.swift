@@ -79,14 +79,14 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 extension AppDelegate: MessagingDelegate {
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         guard let token = fcmToken else {
-            print("❌ FCM Token is nil")
+            print("FCM Token is nil")
             return
         }
 
-        print("🔑 FCM Token: \(token)")
+        print("FCM Token received: \(token)")
 
-        // Store token for later use
-        NotificationService.shared.fcmToken = token
+        // Handle token refresh - this stores the token and triggers device registration
+        NotificationService.shared.handleTokenRefresh(token)
 
         // Post notification for any listeners
         NotificationCenter.default.post(
