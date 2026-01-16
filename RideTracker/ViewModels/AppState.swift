@@ -87,8 +87,12 @@ class AppState: ObservableObject {
         isLoading = false
     }
 
-    func loadParkData(_ park: Park) async {
-        isLoading = true
+    func loadParkData(_ park: Park, showLoading: Bool = true) async {
+        // Only set isLoading for initial loads, not refreshes
+        // Setting state during .refreshable can cause task cancellation
+        if showLoading {
+            isLoading = true
+        }
         errorMessage = nil
 
         await storage.saveLastParkId(park.id)
@@ -109,7 +113,9 @@ class AppState: ObservableObject {
             errorMessage = error.localizedDescription
         }
 
-        isLoading = false
+        if showLoading {
+            isLoading = false
+        }
     }
 
     func refreshData() async {
@@ -119,7 +125,8 @@ class AppState: ObservableObject {
             return
         }
         print("[AppState] refreshData() - refreshing park: \(park.name)")
-        await loadParkData(park)
+        // Pass showLoading: false to avoid state changes that cancel the refresh task
+        await loadParkData(park, showLoading: false)
         print("[AppState] refreshData() completed")
     }
 
