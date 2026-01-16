@@ -125,8 +125,26 @@ class AppState: ObservableObject {
             return
         }
         print("[AppState] refreshData() - refreshing park: \(park.name)")
-        // Pass showLoading: false to avoid state changes that cancel the refresh task
-        await loadParkData(park, showLoading: false)
+
+        // Use a detached task to avoid SwiftUI's .refreshable cancellation
+        // The detached task won't inherit the cancellation context
+        await Task.detached { [api] in
+            do {
+                async let entitiesTask = api.fetchEntities(for: park.id)
+                async let liveDataTask = api.fetchLiveData(for: park.id)
+
+                let (fetchedEntities, fetchedLiveData) = try await (entitiesTask, liveDataTask)
+
+                await MainActor.run {
+                    self.entities = fetchedEntities
+                    self.liveData = Dictionary(uniqueKeysWithValues: fetchedLiveData.map { ($0.id, $0) })
+                }
+                print("[AppState] refreshData() - data updated successfully")
+            } catch {
+                print("[AppState] refreshData() - Error: \(error.localizedDescription)")
+            }
+        }.value
+
         print("[AppState] refreshData() completed")
     }
 
