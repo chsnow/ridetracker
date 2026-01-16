@@ -221,22 +221,21 @@ enum DataEncoder {
         }
         defer { deflateEnd(&stream) }
 
-        var compressed = Data(count: data.count + 128)
+        let outputCapacity = data.count + 128
+        let outputBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: outputCapacity)
+        defer { outputBuffer.deallocate() }
 
         let result = data.withUnsafeBytes { sourcePtr -> Int32 in
-            compressed.withUnsafeMutableBytes { destPtr -> Int32 in
-                stream.next_in = UnsafeMutablePointer<Bytef>(mutating: sourcePtr.bindMemory(to: Bytef.self).baseAddress)
-                stream.avail_in = uInt(data.count)
-                stream.next_out = destPtr.bindMemory(to: Bytef.self).baseAddress
-                stream.avail_out = uInt(compressed.count)
+            stream.next_in = UnsafeMutablePointer<Bytef>(mutating: sourcePtr.bindMemory(to: Bytef.self).baseAddress)
+            stream.avail_in = uInt(data.count)
+            stream.next_out = outputBuffer
+            stream.avail_out = uInt(outputCapacity)
 
-                return deflate(&stream, Z_FINISH)
-            }
+            return deflate(&stream, Z_FINISH)
         }
 
         guard result == Z_STREAM_END else { return nil }
-        compressed.count = Int(stream.total_out)
-        return compressed
+        return Data(bytes: outputBuffer, count: Int(stream.total_out))
     }
 
     /// Decompress gzip data (compatible with web DecompressionStream)
@@ -250,22 +249,21 @@ enum DataEncoder {
         defer { inflateEnd(&stream) }
 
         // Allocate output buffer (estimate 10x expansion)
-        var decompressed = Data(count: data.count * 10)
+        let outputCapacity = data.count * 10
+        let outputBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: outputCapacity)
+        defer { outputBuffer.deallocate() }
 
         let result = data.withUnsafeBytes { sourcePtr -> Int32 in
-            decompressed.withUnsafeMutableBytes { destPtr -> Int32 in
-                stream.next_in = UnsafeMutablePointer<Bytef>(mutating: sourcePtr.bindMemory(to: Bytef.self).baseAddress)
-                stream.avail_in = uInt(data.count)
-                stream.next_out = destPtr.bindMemory(to: Bytef.self).baseAddress
-                stream.avail_out = uInt(decompressed.count)
+            stream.next_in = UnsafeMutablePointer<Bytef>(mutating: sourcePtr.bindMemory(to: Bytef.self).baseAddress)
+            stream.avail_in = uInt(data.count)
+            stream.next_out = outputBuffer
+            stream.avail_out = uInt(outputCapacity)
 
-                return inflate(&stream, Z_FINISH)
-            }
+            return inflate(&stream, Z_FINISH)
         }
 
         guard result == Z_STREAM_END else { return nil }
-        decompressed.count = Int(stream.total_out)
-        return decompressed
+        return Data(bytes: outputBuffer, count: Int(stream.total_out))
     }
 
     // MARK: - Base64 Utilities
