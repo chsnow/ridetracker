@@ -260,7 +260,7 @@
 				DEVELOPMENT_TEAM = U29PR3N7Q4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RideTracker/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Ride Tracker";
+				INFOPLIST_KEY_CFBundleDisplayName = "Ride Tracker Dev";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is needed to scan QR codes for importing ride history and notes.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Location access is used to show your distance from attractions.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -272,7 +272,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.chsnow.ridetracker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chsnow.ridetracker.debug;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
