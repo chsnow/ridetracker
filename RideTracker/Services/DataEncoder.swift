@@ -1,5 +1,6 @@
 import Foundation
 import Compression
+import zlib
 
 /// Encoder/decoder for compact, compressed data exchange format
 /// Compatible with web version at https://github.com/chsnow/tools/blob/main/disney/index.html
@@ -7,15 +8,16 @@ import Compression
 /// Format: DISNEY_H:[gzip-compressed-url-safe-base64] for history
 ///         DISNEY_N:[gzip-compressed-url-safe-base64] for notes
 ///
-/// Short key format for history:
-///   i = id (UUID string)
-///   r = rideId
-///   n = rideName
+/// Web version short key format for history:
+///   i = id (string, used as rideId on iOS)
+///   n = name (rideName)
 ///   p = parkName
 ///   t = timestamp (ISO8601)
-///   e = expectedWaitMinutes
-///   a = actualWaitMinutes
-///   q = queueType (0=standby, 1=lightningLane)
+///   e = expectedWaitMins
+///   w = actualWaitMins
+///   q = queueType
+///
+/// Web version notes format: [{i: id, t: text}, ...]
 
 enum DataEncoder {
 
@@ -28,29 +30,30 @@ enum DataEncoder {
 
     // MARK: - History Encoding
 
-    /// Encode ride history to compact compressed format
+    /// Encode ride history to compact compressed format (web-compatible)
     static func encodeHistory(_ history: [RideHistoryEntry]) -> String? {
-        // Convert to compact format with short keys
+        // Convert to web-compatible format with short keys
         let compactData: [[String: Any]] = history.map { entry in
             var dict: [String: Any] = [
-                "i": entry.id.uuidString,
-                "r": entry.rideId,
+                "i": entry.rideId,  // Web uses 'i' for the ride ID
                 "n": entry.rideName,
                 "p": entry.parkName,
-                "t": ISO8601DateFormatter().string(from: entry.timestamp),
-                "q": entry.queueType == .lightningLane ? 1 : 0
+                "t": ISO8601DateFormatter().string(from: entry.timestamp)
             ]
             if let expected = entry.expectedWaitMinutes {
                 dict["e"] = expected
             }
             if let actual = entry.actualWaitMinutes {
-                dict["a"] = actual
+                dict["w"] = actual  // Web uses 'w' for actual wait
+            }
+            if entry.queueType == .lightningLane {
+                dict["q"] = "lightning"
             }
             return dict
         }
 
         guard let jsonData = try? JSONSerialization.data(withJSONObject: compactData),
-              let compressed = compress(jsonData) else {
+              let compressed = gzipCompress(jsonData) else {
             return nil
         }
 
@@ -72,30 +75,28 @@ enum DataEncoder {
 
         // Decode and decompress
         guard let compressed = urlSafeBase64Decode(data),
-              let decompressed = decompress(compressed),
+              let decompressed = gzipDecompress(compressed),
               let array = try? JSONSerialization.jsonObject(with: decompressed) as? [[String: Any]] else {
             return nil
         }
 
-        // Convert from compact format
+        // Convert from web format
         let dateFormatter = ISO8601DateFormatter()
         return array.compactMap { dict -> RideHistoryEntry? in
-            guard let idString = dict["i"] as? String,
-                  let id = UUID(uuidString: idString),
-                  let rideId = dict["r"] as? String,
+            // Web format uses 'i' for ID and 'n' for name
+            guard let rideId = dict["i"] as? String,
                   let rideName = dict["n"] as? String,
-                  let parkName = dict["p"] as? String,
                   let timestampString = dict["t"] as? String,
                   let timestamp = dateFormatter.date(from: timestampString) else {
                 return nil
             }
 
-            let queueType: QueueType = (dict["q"] as? Int) == 1 ? .lightningLane : .standby
+            let parkName = dict["p"] as? String ?? "Unknown Park"
+            let queueType: QueueType = (dict["q"] as? String) == "lightning" ? .lightningLane : .standby
             let expected = dict["e"] as? Int
-            let actual = dict["a"] as? Int
+            let actual = dict["w"] as? Int  // Web uses 'w' for actual wait
 
             return RideHistoryEntry(
-                id: id,
                 rideId: rideId,
                 rideName: rideName,
                 parkName: parkName,
@@ -109,10 +110,16 @@ enum DataEncoder {
 
     // MARK: - Notes Encoding
 
-    /// Encode notes to compact compressed format
+    /// Encode notes to compact compressed format (web-compatible)
+    /// Web format: [{i: id, t: text}, ...]
     static func encodeNotes(_ notes: [String: String]) -> String? {
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: notes),
-              let compressed = compress(jsonData) else {
+        // Convert to web-compatible array format
+        let notesArray: [[String: String]] = notes.map { key, value in
+            ["i": key, "t": value]
+        }
+
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: notesArray),
+              let compressed = gzipCompress(jsonData) else {
             return nil
         }
 
@@ -121,6 +128,7 @@ enum DataEncoder {
     }
 
     /// Decode notes from compact compressed format
+    /// Web format: [{i: id, t: text}, ...]
     static func decodeNotes(_ encoded: String) -> [String: String]? {
         // Strip prefix
         let data: String
@@ -134,12 +142,27 @@ enum DataEncoder {
 
         // Decode and decompress
         guard let compressed = urlSafeBase64Decode(data),
-              let decompressed = decompress(compressed),
-              let dict = try? JSONSerialization.jsonObject(with: decompressed) as? [String: String] else {
+              let decompressed = gzipDecompress(compressed) else {
             return nil
         }
 
-        return dict
+        // Try to parse as array format (web format)
+        if let array = try? JSONSerialization.jsonObject(with: decompressed) as? [[String: String]] {
+            var notes: [String: String] = [:]
+            for item in array {
+                if let id = item["i"], let text = item["t"] {
+                    notes[id] = text
+                }
+            }
+            return notes
+        }
+
+        // Fallback: try dictionary format (iOS legacy)
+        if let dict = try? JSONSerialization.jsonObject(with: decompressed) as? [String: String] {
+            return dict
+        }
+
+        return nil
     }
 
     // MARK: - Format Detection
@@ -186,54 +209,63 @@ enum DataEncoder {
         return .unknown
     }
 
-    // MARK: - Compression Utilities
+    // MARK: - Gzip Compression (Web-compatible)
 
-    /// Compress data using gzip
-    private static func compress(_ data: Data) -> Data? {
-        let destinationBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: data.count)
-        defer { destinationBuffer.deallocate() }
+    /// Compress data using gzip format (compatible with web CompressionStream)
+    private static func gzipCompress(_ data: Data) -> Data? {
+        var stream = z_stream()
 
-        let compressedSize = data.withUnsafeBytes { sourceBuffer -> Int in
-            guard let sourcePtr = sourceBuffer.bindMemory(to: UInt8.self).baseAddress else {
-                return 0
+        // Initialize for gzip format (windowBits = 15 + 16 for gzip)
+        guard deflateInit2_(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 15 + 16, 8, Z_DEFAULT_STRATEGY, ZLIB_VERSION, Int32(MemoryLayout<z_stream>.size)) == Z_OK else {
+            return nil
+        }
+        defer { deflateEnd(&stream) }
+
+        var compressed = Data(count: data.count + 128)
+
+        let result = data.withUnsafeBytes { sourcePtr -> Int32 in
+            compressed.withUnsafeMutableBytes { destPtr -> Int32 in
+                stream.next_in = UnsafeMutablePointer<Bytef>(mutating: sourcePtr.bindMemory(to: Bytef.self).baseAddress)
+                stream.avail_in = uInt(data.count)
+                stream.next_out = destPtr.bindMemory(to: Bytef.self).baseAddress
+                stream.avail_out = uInt(compressed.count)
+
+                return deflate(&stream, Z_FINISH)
             }
-            return compression_encode_buffer(
-                destinationBuffer,
-                data.count,
-                sourcePtr,
-                data.count,
-                nil,
-                COMPRESSION_ZLIB
-            )
         }
 
-        guard compressedSize > 0 else { return nil }
-        return Data(bytes: destinationBuffer, count: compressedSize)
+        guard result == Z_STREAM_END else { return nil }
+        compressed.count = Int(stream.total_out)
+        return compressed
     }
 
-    /// Decompress gzip data
-    private static func decompress(_ data: Data) -> Data? {
-        // Allocate buffer for decompressed data (estimate 10x expansion)
-        let destinationSize = data.count * 10
-        let destinationBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: destinationSize)
-        defer { destinationBuffer.deallocate() }
+    /// Decompress gzip data (compatible with web DecompressionStream)
+    private static func gzipDecompress(_ data: Data) -> Data? {
+        var stream = z_stream()
 
-        let decompressedSize = data.withUnsafeBytes { sourceBuffer -> Int in
-            guard let sourcePtr = sourceBuffer.bindMemory(to: UInt8.self).baseAddress else {
-                return 0
+        // Initialize for gzip format (windowBits = 15 + 16 for gzip)
+        guard inflateInit2_(&stream, 15 + 16, ZLIB_VERSION, Int32(MemoryLayout<z_stream>.size)) == Z_OK else {
+            return nil
+        }
+        defer { inflateEnd(&stream) }
+
+        // Allocate output buffer (estimate 10x expansion)
+        var decompressed = Data(count: data.count * 10)
+
+        let result = data.withUnsafeBytes { sourcePtr -> Int32 in
+            decompressed.withUnsafeMutableBytes { destPtr -> Int32 in
+                stream.next_in = UnsafeMutablePointer<Bytef>(mutating: sourcePtr.bindMemory(to: Bytef.self).baseAddress)
+                stream.avail_in = uInt(data.count)
+                stream.next_out = destPtr.bindMemory(to: Bytef.self).baseAddress
+                stream.avail_out = uInt(decompressed.count)
+
+                return inflate(&stream, Z_FINISH)
             }
-            return compression_decode_buffer(
-                destinationBuffer,
-                destinationSize,
-                sourcePtr,
-                data.count,
-                nil,
-                COMPRESSION_ZLIB
-            )
         }
 
-        guard decompressedSize > 0 else { return nil }
-        return Data(bytes: destinationBuffer, count: decompressedSize)
+        guard result == Z_STREAM_END else { return nil }
+        decompressed.count = Int(stream.total_out)
+        return decompressed
     }
 
     // MARK: - Base64 Utilities
