@@ -105,11 +105,10 @@ class AppState: ObservableObject {
             entities = fetchedEntities
             liveData = Dictionary(uniqueKeysWithValues: fetchedLiveData.map { ($0.id, $0) })
         } catch is CancellationError {
-            print("[AppState] loadParkData() - CancellationError caught")
+            // Ignore cancellation errors
         } catch let error as URLError where error.code == .cancelled {
-            print("[AppState] loadParkData() - URLError.cancelled caught")
+            // Ignore URL cancellation errors
         } catch {
-            print("[AppState] loadParkData() - Error: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 
@@ -119,15 +118,9 @@ class AppState: ObservableObject {
     }
 
     func refreshData() async {
-        print("[AppState] refreshData() called")
-        guard let park = selectedPark else {
-            print("[AppState] refreshData() - no park selected, returning early")
-            return
-        }
-        print("[AppState] refreshData() - refreshing park: \(park.name)")
+        guard let park = selectedPark else { return }
 
         // Use a detached task to avoid SwiftUI's .refreshable cancellation
-        // The detached task won't inherit the cancellation context
         await Task.detached { [api] in
             do {
                 async let entitiesTask = api.fetchEntities(for: park.id)
@@ -139,13 +132,10 @@ class AppState: ObservableObject {
                     self.entities = fetchedEntities
                     self.liveData = Dictionary(uniqueKeysWithValues: fetchedLiveData.map { ($0.id, $0) })
                 }
-                print("[AppState] refreshData() - data updated successfully")
             } catch {
-                print("[AppState] refreshData() - Error: \(error.localizedDescription)")
+                // Errors are logged by the API layer
             }
         }.value
-
-        print("[AppState] refreshData() completed")
     }
 
     // MARK: - Filtered & Sorted Entities
