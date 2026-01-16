@@ -101,10 +101,11 @@ class AppState: ObservableObject {
             entities = fetchedEntities
             liveData = Dictionary(uniqueKeysWithValues: fetchedLiveData.map { ($0.id, $0) })
         } catch is CancellationError {
-            // Ignore cancellation errors (happens during pull-to-refresh)
+            print("[AppState] loadParkData() - CancellationError caught")
         } catch let error as URLError where error.code == .cancelled {
-            // Ignore URL cancellation errors
+            print("[AppState] loadParkData() - URLError.cancelled caught")
         } catch {
+            print("[AppState] loadParkData() - Error: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 
@@ -112,8 +113,14 @@ class AppState: ObservableObject {
     }
 
     func refreshData() async {
-        guard let park = selectedPark else { return }
+        print("[AppState] refreshData() called")
+        guard let park = selectedPark else {
+            print("[AppState] refreshData() - no park selected, returning early")
+            return
+        }
+        print("[AppState] refreshData() - refreshing park: \(park.name)")
         await loadParkData(park)
+        print("[AppState] refreshData() completed")
     }
 
     // MARK: - Filtered & Sorted Entities
