@@ -23,6 +23,7 @@ actor RideWatchAPI {
     /// - Returns: DeviceRegistrationResponse on success
     func registerDevice(token: String, deviceName: String? = nil) async throws -> DeviceRegistrationResponse {
         guard let url = URL(string: "\(baseURL)/devices") else {
+            print("[RideWatchAPI] ❌ Register device failed: Invalid URL")
             throw RideWatchAPIError.invalidURL
         }
 
@@ -38,22 +39,33 @@ actor RideWatchAPI {
 
         request.httpBody = try JSONEncoder().encode(body)
 
+        print("[RideWatchAPI] → POST \(url.absoluteString)")
+
         let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
+            print("[RideWatchAPI] ❌ Register device failed: Invalid response")
             throw RideWatchAPIError.invalidResponse
         }
 
+        print("[RideWatchAPI] ← Response: \(httpResponse.statusCode)")
+
         switch httpResponse.statusCode {
         case 200, 201:
-            return try JSONDecoder().decode(DeviceRegistrationResponse.self, from: data)
+            let result = try JSONDecoder().decode(DeviceRegistrationResponse.self, from: data)
+            print("[RideWatchAPI] ✓ Register device succeeded")
+            return result
         case 400:
+            print("[RideWatchAPI] ❌ Register device failed: Bad request (400)")
             throw RideWatchAPIError.badRequest
         case 401, 403:
+            print("[RideWatchAPI] ❌ Register device failed: Unauthorized (\(httpResponse.statusCode))")
             throw RideWatchAPIError.unauthorized
         case 500..<600:
+            print("[RideWatchAPI] ❌ Register device failed: Server error (\(httpResponse.statusCode))")
             throw RideWatchAPIError.serverError(httpResponse.statusCode)
         default:
+            print("[RideWatchAPI] ❌ Register device failed: Unexpected status (\(httpResponse.statusCode))")
             throw RideWatchAPIError.invalidResponse
         }
     }
@@ -112,27 +124,37 @@ actor RideWatchAPI {
     func unregisterDevice(token: String) async throws {
         guard let encodedToken = token.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
               let url = URL(string: "\(baseURL)/devices/\(encodedToken)") else {
+            print("[RideWatchAPI] ❌ Unregister device failed: Invalid URL")
             throw RideWatchAPIError.invalidURL
         }
 
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
 
+        print("[RideWatchAPI] → DELETE \(baseURL)/devices/[token]")
+
         let (_, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
+            print("[RideWatchAPI] ❌ Unregister device failed: Invalid response")
             throw RideWatchAPIError.invalidResponse
         }
 
+        print("[RideWatchAPI] ← Response: \(httpResponse.statusCode)")
+
         switch httpResponse.statusCode {
         case 200, 204:
+            print("[RideWatchAPI] ✓ Unregister device succeeded")
             return // Success
         case 404:
             // Device not found - consider this success since it's already unregistered
+            print("[RideWatchAPI] ✓ Unregister device succeeded (device not found, already unregistered)")
             return
         case 500..<600:
+            print("[RideWatchAPI] ❌ Unregister device failed: Server error (\(httpResponse.statusCode))")
             throw RideWatchAPIError.serverError(httpResponse.statusCode)
         default:
+            print("[RideWatchAPI] ❌ Unregister device failed: Unexpected status (\(httpResponse.statusCode))")
             throw RideWatchAPIError.invalidResponse
         }
     }
