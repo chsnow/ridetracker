@@ -44,10 +44,39 @@ struct QRCodeShareSheet: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) var dismiss
     @State private var shareType: ShareDataType = .history
+    @State private var copied = false
 
     enum ShareDataType: String, CaseIterable {
         case history = "History"
         case notes = "Notes"
+    }
+
+    private var dataToShare: String {
+        // Always use compressed format for QR codes (more efficient)
+        switch shareType {
+        case .history:
+            return appState.exportHistoryEncoded()
+        case .notes:
+            return appState.exportNotesEncoded()
+        }
+    }
+
+    private var dataSize: String {
+        let bytes = dataToShare.utf8.count
+        if bytes < 1024 {
+            return "\(bytes) bytes"
+        } else {
+            return String(format: "%.1f KB", Double(bytes) / 1024.0)
+        }
+    }
+
+    private var entryCount: Int {
+        switch shareType {
+        case .history:
+            return appState.rideHistory.count
+        case .notes:
+            return appState.notes.count
+        }
     }
 
     var body: some View {
@@ -63,16 +92,26 @@ struct QRCodeShareSheet: View {
 
                 QRCodeView(data: dataToShare)
 
-                Text("Scan this QR code to import \(shareType.rawValue.lowercased())")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
+                VStack(spacing: 4) {
+                    Text("Scan to import \(shareType.rawValue.lowercased())")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    Text("\(entryCount) items - \(dataSize)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
 
                 Button {
                     UIPasteboard.general.string = dataToShare
+                    copied = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        copied = false
+                    }
                 } label: {
-                    Label("Copy to Clipboard", systemImage: "doc.on.doc")
+                    Label(copied ? "Copied!" : "Copy to Clipboard", systemImage: copied ? "checkmark" : "doc.on.doc")
                 }
                 .buttonStyle(.bordered)
 
@@ -88,15 +127,6 @@ struct QRCodeShareSheet: View {
                     }
                 }
             }
-        }
-    }
-
-    private var dataToShare: String {
-        switch shareType {
-        case .history:
-            return appState.exportHistory()
-        case .notes:
-            return appState.exportNotes()
         }
     }
 }
@@ -188,36 +218,29 @@ struct QRScannerSheet: View {
     }
 
     private func processScannedCode(_ code: String) {
-        if let data = code.data(using: .utf8) {
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
+        let dataType = DataEncoder.detectDataType(code)
 
-            if (try? decoder.decode([RideHistoryEntry].self, from: data)) != nil {
-                importType = "history"
-                showingImportConfirmation = true
-                return
-            }
-
-            if (try? decoder.decode([String: String].self, from: data)) != nil {
-                importType = "notes"
-                showingImportConfirmation = true
-                return
-            }
+        switch dataType {
+        case .compressedHistory, .jsonHistory:
+            importType = "history"
+            showingImportConfirmation = true
+        case .compressedNotes, .jsonNotes:
+            importType = "notes"
+            showingImportConfirmation = true
+        case .unknown:
+            dismiss()
         }
-
-        dismiss()
     }
 
     private func performImport(strategy: ImportStrategy) {
         guard let code = scannedCode else { return }
 
-        switch importType {
-        case "history":
-            appState.importHistory(from: code, strategy: strategy)
-        case "notes":
-            appState.importNotes(from: code, strategy: strategy)
-        default:
-            break
+        // Use the unified import method that handles all formats
+        let result = appState.importData(from: code, strategy: strategy)
+
+        // Could show an alert with result, but for now just dismiss
+        if case .failure = result {
+            // Could show error, but QR codes should be valid if detected
         }
 
         dismiss()
