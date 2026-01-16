@@ -27,6 +27,7 @@
 		018 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118 /* NotificationService.swift */; };
 		019 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = F001 /* FirebaseMessaging */; };
 		020 /* DataEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119 /* DataEncoder.swift */; };
+		021 /* RideWatchAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120 /* RideWatchAPI.swift */; };
 		E03CDDD32F1977000018A7F0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E03CDDD22F1976FF0018A7F0 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
@@ -51,6 +52,7 @@
 		117 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		118 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		119 /* DataEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataEncoder.swift; sourceTree = "<group>"; };
+		120 /* RideWatchAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideWatchAPI.swift; sourceTree = "<group>"; };
 		200 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		201 /* RideTracker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RideTracker.entitlements; sourceTree = "<group>"; };
 		E03CDDD22F1976FF0018A7F0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -141,6 +143,7 @@
 				117 /* AppDelegate.swift */,
 				118 /* NotificationService.swift */,
 				119 /* DataEncoder.swift */,
+				120 /* RideWatchAPI.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -239,6 +242,7 @@
 				017 /* AppDelegate.swift in Sources */,
 				018 /* NotificationService.swift in Sources */,
 				020 /* DataEncoder.swift in Sources */,
+				021 /* RideWatchAPI.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
