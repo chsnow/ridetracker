@@ -121,8 +121,14 @@ class NotificationService: ObservableObject {
     func handleTokenRefresh(_ token: String) {
         let previousToken = fcmToken
 
-        DispatchQueue.main.async {
+        // Set token synchronously to ensure it's available for registration
+        // This is called from the main thread via MessagingDelegate
+        if Thread.isMainThread {
             self.fcmToken = token
+        } else {
+            DispatchQueue.main.sync {
+                self.fcmToken = token
+            }
         }
 
         // If token changed, re-register
