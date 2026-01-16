@@ -256,11 +256,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = RideTracker/RideTracker.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = U29PR3N7Q4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RideTracker/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Ride Tracker Dev";
+				INFOPLIST_KEY_CFBundleDisplayName = DLRideTrackerDev;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is needed to scan QR codes for importing ride history and notes.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Location access is used to show your distance from attractions.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -287,11 +287,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = RideTracker/RideTracker.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = U29PR3N7Q4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RideTracker/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Ride Tracker";
+				INFOPLIST_KEY_CFBundleDisplayName = DLRideTracker;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is needed to scan QR codes for importing ride history and notes.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Location access is used to show your distance from attractions.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
