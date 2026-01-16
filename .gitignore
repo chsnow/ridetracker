@@ -1,0 +1,18 @@
+GoogleService-Info.plist
+RideTracker/GoogleService-Info.plist
+
+# XCode stuff
+xcuserdata/
+build/
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.xcworkspace
+.swiftpm/
+.build/
+Packages/
+Package.pins
+Package.resolved
+.DS_Store
+
+
