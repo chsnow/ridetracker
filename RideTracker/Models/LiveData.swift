@@ -100,7 +100,13 @@ struct PriceInfo: Codable {
 
     var formatted: String? {
         guard let amount = amount else { return nil }
-        return String(format: "$%.0f", amount)
+        let dollars = amount / 100.0
+        let cents = dollars.truncatingRemainder(dividingBy: 1)
+        if cents == 0 {
+            return String(format: "$%.0f", dollars)
+        } else {
+            return String(format: "$%.2f", dollars)
+        }
     }
 }
 
