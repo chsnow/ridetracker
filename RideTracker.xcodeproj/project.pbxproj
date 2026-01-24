@@ -390,7 +390,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = RideTracker/RideTracker.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = U29PR3N7Q4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RideTracker/Info.plist;
@@ -422,7 +422,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = RideTracker/RideTracker.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = U29PR3N7Q4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RideTracker/Info.plist;
@@ -569,7 +569,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = U29PR3N7Q4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = QueueTimerWidget/Info.plist;
@@ -594,7 +594,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = U29PR3N7Q4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = QueueTimerWidget/Info.plist;
