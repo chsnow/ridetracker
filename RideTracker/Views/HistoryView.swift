@@ -170,7 +170,7 @@ struct HistoryDaySection: View {
 
     private var parkSummary: String {
         let parks = Set(entries.map { $0.parkName })
-        return parks.map { parkShortName($0) }.joined(separator: ", ")
+        return parks.sorted().map { parkShortName($0) }.joined(separator: ", ")
     }
 
     var body: some View {
