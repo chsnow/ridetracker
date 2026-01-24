@@ -38,15 +38,20 @@ struct Entity: Codable, Identifiable {
     let id: String
     let name: String
     let entityType: EntityType
+    var attractionType: String?
     let location: EntityLocation?
 
     enum CodingKeys: String, CodingKey {
-        case id, name, entityType, location
+        case id, name, entityType, attractionType, location
     }
 
     var coordinate: CLLocationCoordinate2D? {
         guard let location = location else { return nil }
         return CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude)
+    }
+
+    var isRide: Bool {
+        entityType == .attraction && attractionType == "RIDE"
     }
 }
 
@@ -55,24 +60,38 @@ struct EntityLocation: Codable {
     let longitude: Double
 }
 
+struct EntityDetail: Codable {
+    let id: String
+    let attractionType: String?
+}
+
 enum EntityType: String, Codable, CaseIterable {
     case attraction = "ATTRACTION"
     case show = "SHOW"
     case restaurant = "RESTAURANT"
+}
+
+enum DisplayTab: String, CaseIterable {
+    case rides
+    case attractions
+    case shows
+    case restaurants
 
     var displayName: String {
         switch self {
-        case .attraction: return "Attractions"
-        case .show: return "Shows"
-        case .restaurant: return "Restaurants"
+        case .rides: return "Rides"
+        case .attractions: return "Attractions"
+        case .shows: return "Shows"
+        case .restaurants: return "Restaurants"
         }
     }
 
     var icon: String {
         switch self {
-        case .attraction: return "wand.and.stars"
-        case .show: return "theatermasks"
-        case .restaurant: return "fork.knife"
+        case .rides: return "ticket.fill"
+        case .attractions: return "wand.and.stars"
+        case .shows: return "theatermasks"
+        case .restaurants: return "fork.knife"
         }
     }
 }

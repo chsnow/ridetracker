@@ -15,6 +15,7 @@ actor StorageService {
         static let collapsedDays = "disneyCollapsedDays"
         static let sortOrder = "disneySortOrder"
         static let lastParkId = "disneyLastParkId"
+        static let attractionTypes = "disneyAttractionTypes"
     }
 
     private init() {}
@@ -192,6 +193,19 @@ actor StorageService {
 
     func saveLastParkId(_ parkId: String) {
         defaults.set(parkId, forKey: Keys.lastParkId)
+    }
+
+    // MARK: - Attraction Types Cache
+
+    func getAttractionTypes() -> [String: String] {
+        guard let data = defaults.data(forKey: Keys.attractionTypes) else { return [:] }
+        return (try? decoder.decode([String: String].self, from: data)) ?? [:]
+    }
+
+    func saveAttractionTypes(_ types: [String: String]) {
+        if let data = try? encoder.encode(types) {
+            defaults.set(data, forKey: Keys.attractionTypes)
+        }
     }
 }
 
