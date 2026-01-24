@@ -110,45 +110,46 @@ struct RideCardView: View {
                         .lineLimit(2)
                 }
 
-                // Status and Wait Time
-                HStack {
-                    if let status = liveData?.status {
-                        StatusBadge(status: status)
-                    }
-
-                    Spacer()
-
-                    // Wait Time
-                    if let waitTime = liveData?.waitMinutes {
-                        HStack(spacing: 4) {
-                            Image(systemName: "clock")
-                                .font(.caption)
-                            Text("\(waitTime) min")
-                                .font(.subheadline.weight(.semibold))
-                        }
-                        .foregroundColor(.primary)
-                    }
-
-                    // Lightning Lane
-                    if let ll = liveData?.lightningLaneInfo {
-                        if ll.isSoldOut {
-                            Text("LL Sold Out")
-                                .font(.caption)
-                                .foregroundColor(.red)
-                        } else if let time = ll.formattedReturnTime {
+                // Status / Wait Time / Lightning Lane
+                if (liveData?.status != nil && liveData?.status != .operating) ||
+                   liveData?.waitMinutes != nil ||
+                   liveData?.lightningLaneInfo != nil {
+                    HStack(spacing: 12) {
+                        // Status Badge (replaces wait time when not operating)
+                        if let status = liveData?.status, status != .operating {
+                            StatusBadge(status: status)
+                        } else if let waitTime = liveData?.waitMinutes {
+                            // Wait Time (only when operating)
                             HStack(spacing: 4) {
-                                Image(systemName: "bolt.fill")
+                                Image(systemName: "clock")
                                     .font(.caption)
-                                Text(time)
+                                Text("\(waitTime) min")
+                                    .font(.subheadline.weight(.semibold))
+                            }
+                            .foregroundColor(.primary)
+                        }
+
+                        // Lightning Lane
+                        if let ll = liveData?.lightningLaneInfo {
+                            if ll.isSoldOut {
+                                Text("LL Sold Out")
                                     .font(.caption)
-                                if liveData?.hasPaidLightningLane == true {
-                                    if let price = ll.price?.formatted {
-                                        Text(price)
-                                            .font(.caption)
+                                    .foregroundColor(.red)
+                            } else if let time = ll.formattedReturnTime {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "bolt.fill")
+                                        .font(.caption)
+                                    Text(time)
+                                        .font(.caption)
+                                    if liveData?.hasPaidLightningLane == true {
+                                        if let price = ll.price?.formatted {
+                                            Text(price)
+                                                .font(.caption)
+                                        }
                                     }
                                 }
+                                .foregroundColor(Color(red: 0.173, green: 0.659, blue: 0.345))
                             }
-                            .foregroundColor(.orange)
                         }
                     }
                 }
@@ -335,7 +336,7 @@ struct QueueTimerView: View {
                 }
             }
             .padding(8)
-            .background(queue.queueType == .lightningLane ? Color.orange.opacity(0.2) : Color.green.opacity(0.2))
+            .background(queue.queueType == .lightningLane ? Color(red: 0.173, green: 0.659, blue: 0.345).opacity(0.2) : Color(red: 0.149, green: 0.376, blue: 0.659).opacity(0.2))
             .cornerRadius(8)
         }
     }
@@ -392,7 +393,7 @@ struct QueueTypeSheet: View {
                             .foregroundColor(.secondary)
                     }
                     .padding()
-                    .background(Color.orange.opacity(0.2))
+                    .background(Color(red: 0.173, green: 0.659, blue: 0.345).opacity(0.2))
                     .cornerRadius(12)
                 }
                 .buttonStyle(.plain)

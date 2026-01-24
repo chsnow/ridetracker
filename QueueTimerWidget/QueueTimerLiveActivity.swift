@@ -146,7 +146,7 @@ struct QueueTimerLiveActivity: Widget {
     }
 
     private func queueTypeColor(_ queueType: String) -> Color {
-        queueType == "lightningLane" ? .yellow : .blue
+        queueType == "lightningLane" ? Color(red: 0.173, green: 0.659, blue: 0.345) : Color(red: 0.149, green: 0.376, blue: 0.659)
     }
 }
 
@@ -217,7 +217,7 @@ struct LockScreenView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
                     .background(queueTypeColor)
-                    .foregroundStyle(context.attributes.queueType == "lightningLane" ? .black : .white)
+                    .foregroundStyle(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
                 .buttonStyle(.plain)
@@ -237,7 +237,7 @@ struct LockScreenView: View {
     }
 
     private var queueTypeColor: Color {
-        context.attributes.queueType == "lightningLane" ? .yellow : .blue
+        context.attributes.queueType == "lightningLane" ? Color(red: 0.173, green: 0.659, blue: 0.345) : Color(red: 0.149, green: 0.376, blue: 0.659)
     }
 }
 

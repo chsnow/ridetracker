@@ -271,7 +271,7 @@ struct HistoryItemView: View {
                                 .font(.caption2.weight(.bold))
                                 .padding(.horizontal, 4)
                                 .padding(.vertical, 2)
-                                .background(Color.orange)
+                                .background(Color(red: 0.173, green: 0.659, blue: 0.345))
                                 .foregroundColor(.white)
                                 .cornerRadius(4)
                         }
