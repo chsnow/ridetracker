@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import CoreLocation
+import UIKit
 
 @MainActor
 class AppState: ObservableObject {
@@ -35,14 +36,43 @@ class AppState: ObservableObject {
     // MARK: - Timer
 
     private var timerCancellable: AnyCancellable?
+    private var foregroundObserver: Any?
 
     // MARK: - Initialization
 
     init() {
         loadLocalData()
         startQueueTimer()
+        setupForegroundObserver()
         Task {
             await loadParks()
+        }
+    }
+
+    private func setupForegroundObserver() {
+        foregroundObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.syncFromStorage()
+            }
+        }
+    }
+
+    private func syncFromStorage() {
+        Task {
+            // Reload queues and history in case they were modified by Live Activity intents
+            let storedQueues = await storage.getActiveQueues()
+            let storedHistory = await storage.getRideHistory()
+
+            // Update in-memory state
+            activeQueues = storedQueues
+            rideHistory = storedHistory
+
+            // Sync Live Activities with current queue state
+            LiveActivityService.shared.restoreActivities(activeQueues: activeQueues)
         }
     }
 
@@ -56,6 +86,9 @@ class AppState: ObservableObject {
             notes = await storage.getNotes()
             collapsedDays = await storage.getCollapsedDays()
             sortOrder = await storage.getSortOrder()
+
+            // Restore Live Activities for active queues
+            LiveActivityService.shared.restoreActivities(activeQueues: activeQueues)
         }
     }
 
@@ -330,6 +363,7 @@ class AppState: ObservableObject {
             expectedWaitMinutes: liveData[entity.id]?.waitMinutes
         )
         activeQueues[entity.id] = queue
+        LiveActivityService.shared.startActivity(for: queue)
         Task {
             await storage.startQueue(queue)
         }
@@ -350,6 +384,7 @@ class AppState: ObservableObject {
 
         activeQueues.removeValue(forKey: entity.id)
         rideHistory.insert(entry, at: 0)
+        LiveActivityService.shared.endActivity(for: entity.id)
 
         Task {
             _ = await storage.endQueue(rideId: entity.id)
@@ -357,8 +392,32 @@ class AppState: ObservableObject {
         }
     }
 
+    func endQueue(rideId: String) {
+        guard let queue = activeQueues[rideId] else { return }
+
+        let entry = RideHistoryEntry(
+            rideId: rideId,
+            rideName: queue.rideName,
+            parkName: queue.parkName,
+            timestamp: Date(),
+            expectedWaitMinutes: queue.expectedWaitMinutes,
+            actualWaitMinutes: queue.elapsedMinutes,
+            queueType: queue.queueType
+        )
+
+        activeQueues.removeValue(forKey: rideId)
+        rideHistory.insert(entry, at: 0)
+        LiveActivityService.shared.endActivity(for: rideId)
+
+        Task {
+            _ = await storage.endQueue(rideId: rideId)
+            await storage.addToHistory(entry)
+        }
+    }
+
     func cancelQueue(entityId: String) {
         activeQueues.removeValue(forKey: entityId)
+        LiveActivityService.shared.endActivity(for: entityId)
         Task {
             _ = await storage.endQueue(rideId: entityId)
         }

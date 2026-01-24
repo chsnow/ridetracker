@@ -28,8 +28,40 @@
 		019 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = F001 /* FirebaseMessaging */; };
 		020 /* DataEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119 /* DataEncoder.swift */; };
 		021 /* RideWatchAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120 /* RideWatchAPI.swift */; };
+		022 /* QueueTimerAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 121 /* QueueTimerAttributes.swift */; };
+		023 /* LiveActivityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 122 /* LiveActivityService.swift */; };
+		024 /* QueueIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123 /* QueueIntents.swift */; };
 		E03CDDD32F1977000018A7F0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E03CDDD22F1976FF0018A7F0 /* GoogleService-Info.plist */; };
+		W001 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = W100 /* WidgetKit.framework */; };
+		W002 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = W101 /* SwiftUI.framework */; };
+		W003 /* QueueTimerWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = W102 /* QueueTimerWidgetBundle.swift */; };
+		W004 /* QueueTimerLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = W103 /* QueueTimerLiveActivity.swift */; };
+		W005 /* QueueTimerWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = W104 /* QueueTimerWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		W200 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 900 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = W700;
+			remoteInfo = QueueTimerWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		W503 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				W005 /* QueueTimerWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		100 /* RideTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RideTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -53,9 +85,18 @@
 		118 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		119 /* DataEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataEncoder.swift; sourceTree = "<group>"; };
 		120 /* RideWatchAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideWatchAPI.swift; sourceTree = "<group>"; };
+		121 /* QueueTimerAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueTimerAttributes.swift; sourceTree = "<group>"; };
+		122 /* LiveActivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityService.swift; sourceTree = "<group>"; };
+		123 /* QueueIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueIntents.swift; sourceTree = "<group>"; };
 		200 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		201 /* RideTracker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RideTracker.entitlements; sourceTree = "<group>"; };
 		E03CDDD22F1976FF0018A7F0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		W100 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		W101 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		W102 /* QueueTimerWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueTimerWidgetBundle.swift; sourceTree = "<group>"; };
+		W103 /* QueueTimerLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueTimerLiveActivity.swift; sourceTree = "<group>"; };
+		W104 /* QueueTimerWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = QueueTimerWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		W105 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +108,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		W500 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				W002 /* SwiftUI.framework in Frameworks */,
+				W001 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -74,6 +124,8 @@
 			isa = PBXGroup;
 			children = (
 				601 /* RideTracker */,
+				607 /* QueueTimerWidget */,
+				608 /* Frameworks */,
 				602 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -87,6 +139,7 @@
 				604 /* ViewModels */,
 				605 /* Models */,
 				606 /* Services */,
+				609 /* Intents */,
 				200 /* Assets.xcassets */,
 				116 /* Info.plist */,
 				201 /* RideTracker.entitlements */,
@@ -98,6 +151,7 @@
 			isa = PBXGroup;
 			children = (
 				100 /* RideTracker.app */,
+				W104 /* QueueTimerWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -130,6 +184,7 @@
 				110 /* LiveData.swift */,
 				111 /* RideHistory.swift */,
 				112 /* ActiveQueue.swift */,
+				121 /* QueueTimerAttributes.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -144,8 +199,36 @@
 				118 /* NotificationService.swift */,
 				119 /* DataEncoder.swift */,
 				120 /* RideWatchAPI.swift */,
+				122 /* LiveActivityService.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		607 /* QueueTimerWidget */ = {
+			isa = PBXGroup;
+			children = (
+				W102 /* QueueTimerWidgetBundle.swift */,
+				W103 /* QueueTimerLiveActivity.swift */,
+				W105 /* Info.plist */,
+			);
+			path = QueueTimerWidget;
+			sourceTree = "<group>";
+		};
+		608 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				W100 /* WidgetKit.framework */,
+				W101 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		609 /* Intents */ = {
+			isa = PBXGroup;
+			children = (
+				123 /* QueueIntents.swift */,
+			);
+			path = Intents;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -158,10 +241,12 @@
 				501 /* Sources */,
 				500 /* Frameworks */,
 				502 /* Resources */,
+				W503 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				W201 /* PBXTargetDependency */,
 			);
 			name = RideTracker;
 			packageProductDependencies = (
@@ -170,6 +255,23 @@
 			productName = RideTracker;
 			productReference = 100 /* RideTracker.app */;
 			productType = "com.apple.product-type.application";
+		};
+		W700 /* QueueTimerWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = W800 /* Build configuration list for PBXNativeTarget "QueueTimerWidgetExtension" */;
+			buildPhases = (
+				W501 /* Sources */,
+				W500 /* Frameworks */,
+				W502 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = QueueTimerWidgetExtension;
+			productName = QueueTimerWidgetExtension;
+			productReference = W104 /* QueueTimerWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -182,6 +284,9 @@
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					700 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					W700 = {
 						CreatedOnToolsVersion = 15.0;
 					};
 				};
@@ -203,6 +308,7 @@
 			projectRoot = "";
 			targets = (
 				700 /* RideTracker */,
+				W700 /* QueueTimerWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -214,6 +320,13 @@
 			files = (
 				016 /* Assets.xcassets in Resources */,
 				E03CDDD32F1977000018A7F0 /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		W502 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -243,15 +356,36 @@
 				018 /* NotificationService.swift in Sources */,
 				020 /* DataEncoder.swift in Sources */,
 				021 /* RideWatchAPI.swift in Sources */,
+				022 /* QueueTimerAttributes.swift in Sources */,
+				023 /* LiveActivityService.swift in Sources */,
+				024 /* QueueIntents.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		W501 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				W003 /* QueueTimerWidgetBundle.swift in Sources */,
+				W004 /* QueueTimerLiveActivity.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		W201 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = W700 /* QueueTimerWidgetExtension */;
+			targetProxy = W200 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
 		810 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = RideTracker/RideTracker.entitlements;
@@ -283,6 +417,7 @@
 		811 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = RideTracker/RideTracker.entitlements;
@@ -430,6 +565,56 @@
 			};
 			name = Release;
 		};
+		W810 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = U29PR3N7Q4;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = QueueTimerWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = QueueTimerWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chsnow.ridetracker.debug.QueueTimerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		W811 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = U29PR3N7Q4;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = QueueTimerWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = QueueTimerWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chsnow.ridetracker.QueueTimerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -447,6 +632,15 @@
 			buildConfigurations = (
 				910 /* Debug */,
 				911 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		W800 /* Build configuration list for PBXNativeTarget "QueueTimerWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				W810 /* Debug */,
+				W811 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
