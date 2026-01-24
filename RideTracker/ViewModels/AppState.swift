@@ -254,18 +254,29 @@ class AppState: ObservableObject {
             return entities.sorted { e1, e2 in
                 let ll1 = liveData[e1.id]?.lightningLaneInfo
                 let ll2 = liveData[e2.id]?.lightningLaneInfo
+                let hasLL1 = ll1 != nil
+                let hasLL2 = ll2 != nil
+                let soldOut1 = ll1?.isSoldOut ?? false
+                let soldOut2 = ll2?.isSoldOut ?? false
                 let time1 = llReturnDate(ll1)
                 let time2 = llReturnDate(ll2)
 
-                // Entities with LL come first, sorted by return time
+                // Group order: Available LLs > Sold out LLs > No LL
+                // First, entities with LL come before those without
+                if hasLL1 != hasLL2 {
+                    return hasLL1
+                }
+
+                // Among entities with LL, available ones come before sold out
+                if hasLL1 && hasLL2 && soldOut1 != soldOut2 {
+                    return soldOut2  // not sold out comes first
+                }
+
+                // Sort available LLs by return time (earliest first)
                 switch (time1, time2) {
                 case (.some(let t1), .some(let t2)):
                     return t1 < t2
-                case (.some, .none):
-                    return true
-                case (.none, .some):
-                    return false
-                case (.none, .none):
+                default:
                     return e1.name < e2.name
                 }
             }
@@ -274,10 +285,17 @@ class AppState: ObservableObject {
             return entities.sorted { e1, e2 in
                 let ll1 = liveData[e1.id]?.lightningLaneInfo
                 let ll2 = liveData[e2.id]?.lightningLaneInfo
+                let soldOut1 = ll1?.isSoldOut ?? false
+                let soldOut2 = ll2?.isSoldOut ?? false
                 let time1 = llReturnDate(ll1)
                 let time2 = llReturnDate(ll2)
 
-                // Entities with LL come first, sorted by return time (latest first)
+                // Sold out LLs come first
+                if soldOut1 != soldOut2 {
+                    return soldOut1
+                }
+
+                // Then sort by return time (latest first), entities with LL before those without
                 switch (time1, time2) {
                 case (.some(let t1), .some(let t2)):
                     return t1 > t2
