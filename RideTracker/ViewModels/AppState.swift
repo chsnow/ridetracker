@@ -157,6 +157,31 @@ class AppState: ObservableObject {
     }
 
     private func sortEntities(_ entities: [Entity]) -> [Entity] {
+        // Partition entities: those with active queue timers go first
+        let (inQueue, notInQueue) = entities.reduce(into: ([Entity](), [Entity]())) { result, entity in
+            if activeQueues[entity.id] != nil {
+                result.0.append(entity)
+            } else {
+                result.1.append(entity)
+            }
+        }
+
+        // Sort entities with active timers by start time (most recent first)
+        let sortedInQueue = inQueue.sorted { e1, e2 in
+            guard let q1 = activeQueues[e1.id],
+                  let q2 = activeQueues[e2.id] else {
+                return e1.name < e2.name
+            }
+            return q1.startTime > q2.startTime
+        }
+
+        // Apply regular sort order to remaining entities
+        let sortedRest = applySortOrder(notInQueue)
+
+        return sortedInQueue + sortedRest
+    }
+
+    private func applySortOrder(_ entities: [Entity]) -> [Entity] {
         switch sortOrder {
         case .name:
             return entities.sorted { $0.name < $1.name }
