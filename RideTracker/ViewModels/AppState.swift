@@ -11,7 +11,7 @@ class AppState: ObservableObject {
     @Published var selectedPark: Park?
     @Published var entities: [Entity] = []
     @Published var liveData: [String: LiveData] = [:]
-    @Published var selectedEntityType: EntityType = .attraction
+    @Published var selectedDisplayTab: DisplayTab = .rides
     @Published var selectedTab: AppTab = .rides
 
     @Published var rideHistory: [RideHistoryEntry] = []
@@ -134,7 +134,11 @@ class AppState: ObservableObject {
             async let entitiesTask = api.fetchEntities(for: park.id)
             async let liveDataTask = api.fetchLiveData(for: park.id)
 
-            let (fetchedEntities, fetchedLiveData) = try await (entitiesTask, liveDataTask)
+            var (fetchedEntities, fetchedLiveData) = try await (entitiesTask, liveDataTask)
+
+            // Load cached attraction types and fetch any missing ones
+            fetchedEntities = await loadAttractionTypes(for: fetchedEntities)
+
             entities = fetchedEntities
             liveData = Dictionary(uniqueKeysWithValues: fetchedLiveData.map { ($0.id, $0) })
         } catch is CancellationError {
@@ -150,16 +154,77 @@ class AppState: ObservableObject {
         }
     }
 
+    // Overrides for attractions that are misclassified by the API
+    private let attractionTypeOverrides: [String: String] = [
+        "86ab3069-110d-49c5-a7e7-29ddf28695a6": "RIDE"  // Toy Story Midway Mania
+    ]
+
+    private func loadAttractionTypes(for entities: [Entity]) async -> [Entity] {
+        var cachedTypes = await storage.getAttractionTypes()
+        var updatedEntities = entities
+
+        // Apply overrides to cache
+        for (id, type) in attractionTypeOverrides {
+            cachedTypes[id] = type
+        }
+
+        // Find attractions that need their type fetched
+        let attractions = entities.filter { $0.entityType == .attraction }
+        let uncachedAttractions = attractions.filter { cachedTypes[$0.id] == nil }
+
+        if !uncachedAttractions.isEmpty {
+            // Fetch attraction types in parallel
+            await withTaskGroup(of: (String, String?).self) { group in
+                for attraction in uncachedAttractions {
+                    group.addTask {
+                        do {
+                            let detail = try await self.api.fetchEntity(id: attraction.id)
+                            return (attraction.id, detail.attractionType)
+                        } catch {
+                            return (attraction.id, nil)
+                        }
+                    }
+                }
+
+                for await (id, attractionType) in group {
+                    if let type = attractionType {
+                        cachedTypes[id] = type
+                    }
+                }
+            }
+
+            // Save updated cache
+            await storage.saveAttractionTypes(cachedTypes)
+        }
+
+        // Apply cached types to entities
+        for i in updatedEntities.indices {
+            if let type = cachedTypes[updatedEntities[i].id] {
+                updatedEntities[i].attractionType = type
+            }
+        }
+
+        return updatedEntities
+    }
+
     func refreshData() async {
         guard let park = selectedPark else { return }
 
         // Use a detached task to avoid SwiftUI's .refreshable cancellation
-        await Task.detached { [api] in
+        await Task.detached { [api, storage] in
             do {
                 async let entitiesTask = api.fetchEntities(for: park.id)
                 async let liveDataTask = api.fetchLiveData(for: park.id)
 
-                let (fetchedEntities, fetchedLiveData) = try await (entitiesTask, liveDataTask)
+                var (fetchedEntities, fetchedLiveData) = try await (entitiesTask, liveDataTask)
+
+                // Apply cached attraction types
+                let cachedTypes = await storage.getAttractionTypes()
+                for i in fetchedEntities.indices {
+                    if let type = cachedTypes[fetchedEntities[i].id] {
+                        fetchedEntities[i].attractionType = type
+                    }
+                }
 
                 await MainActor.run {
                     self.entities = fetchedEntities
@@ -174,7 +239,18 @@ class AppState: ObservableObject {
     // MARK: - Filtered & Sorted Entities
 
     var filteredEntities: [Entity] {
-        var result = entities.filter { $0.entityType == selectedEntityType }
+        var result = entities.filter { entity in
+            switch selectedDisplayTab {
+            case .rides:
+                return entity.isRide
+            case .attractions:
+                return entity.entityType == .attraction && !entity.isRide
+            case .shows:
+                return entity.entityType == .show
+            case .restaurants:
+                return entity.entityType == .restaurant
+            }
+        }
 
         if showFavoritesOnly {
             result = result.filter { favorites.contains($0.id) }

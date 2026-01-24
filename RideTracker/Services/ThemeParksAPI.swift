@@ -68,6 +68,20 @@ actor ThemeParksAPI {
         return decoded.children
     }
 
+    // MARK: - Single Entity
+
+    func fetchEntity(id: String) async throws -> EntityDetail {
+        let url = URL(string: "\(baseURL)/entity/\(id)")!
+        let (data, response) = try await session.data(from: url)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw APIError.invalidResponse
+        }
+
+        return try JSONDecoder().decode(EntityDetail.self, from: data)
+    }
+
     // MARK: - Live Data
 
     func fetchLiveData(for parkId: String) async throws -> [LiveData] {

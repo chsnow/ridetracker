@@ -103,27 +103,27 @@ struct EntityTabsView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(EntityType.allCases, id: \.self) { type in
+            ForEach(DisplayTab.allCases, id: \.self) { tab in
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
-                        appState.selectedEntityType = type
+                        appState.selectedDisplayTab = tab
                     }
                 } label: {
                     VStack(spacing: 4) {
-                        Image(systemName: type.icon)
+                        Image(systemName: tab.icon)
                             .font(.title3)
-                        Text(type.displayName)
+                        Text(tab.displayName)
                             .font(.caption)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
                     .background(
-                        appState.selectedEntityType == type
+                        appState.selectedDisplayTab == tab
                             ? Color.blue.opacity(0.1)
                             : Color.clear
                     )
                     .foregroundColor(
-                        appState.selectedEntityType == type
+                        appState.selectedDisplayTab == tab
                             ? .blue
                             : .secondary
                     )
