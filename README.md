@@ -85,7 +85,6 @@ This app uses the [ThemeParks.wiki API](https://api.themeparks.wiki/docs) for li
 - Location data is used only for distance calculations and never leaves your device
 - Ride history is stored locally using UserDefaults
 - No account or sign-in required
-- No data is sent to any server except ThemeParks.wiki API requests
 
 ## Building
 
