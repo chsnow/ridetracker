@@ -38,6 +38,11 @@ A native iOS app for tracking Disneyland Resort ride wait times and personal vis
 - Sort attractions by proximity
 - Uses device GPS (optional)
 
+### Push Notifications
+- Receive real-time push notifications for ride status updates
+- Get notified when your favorite rides are down or reopen
+- Powered by the [ride-watch](https://github.com/chsnow/ride-watch) backend service
+
 ## Requirements
 
 - iOS 17.0+
